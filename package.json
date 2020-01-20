@@ -1,0 +1,24 @@
+{
+  "name": "dmn-checker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frantsmn/dmn-checker.git"
+  },
+  "author": "Frants Mitskun",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/frantsmn/dmn-checker/issues"
+  },
+  "homepage": "https://github.com/frantsmn/dmn-checker#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "puppeteer": "^0.12.0",
+    "valid-url": "^1.0.9"
+  }
+}
