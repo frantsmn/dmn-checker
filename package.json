@@ -18,7 +18,6 @@
   "homepage": "https://github.com/frantsmn/dmn-checker#readme",
   "dependencies": {
     "express": "^4.16.4",
-    "puppeteer": "^0.12.0",
-    "valid-url": "^1.0.9"
+    "puppeteer": "^0.12.0"
   }
 }
