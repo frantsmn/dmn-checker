@@ -1,106 +1,137 @@
+const puppeteer = require('puppeteer');
 const express = require('express');
 const app = express();
-const puppeteer = require('puppeteer');
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8081;
 
-// headless: false,
 (async () => {
+    // headless: false,
     const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    async function checkDomain(domain) {
+
+    async function checkDomain(obj) {
+
+        let page;
 
         let result = {
-            isError: false,
-            errorText: '',
-            domain: domain,
+            id: obj.id,
+            domain: obj.domain,
             img: '',
             links: [],
+            isError: false,
+            errorText: ''
         };
 
-        const page = await browser.newPage();
-        console.log(`INFO >> Открыта новая страница [${domain}]`);
-        await page.goto(`http://web.archive.org/web/*/${domain}`, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
-            .catch(function (error) {
-                const errorMessage = `ERROR >> Не удалось перейти на страницу [${domain}]\n${error}\n\n`
-                console.error(errorMessage);
-                result.errorText += errorMessage;
-                result.isError = true;
-            });
-
-        if (result.isError) {
-            page.close();
-            console.log(`INFO >> Страница закрыта [${domain}]\n\n`);
-            return result
-        } else {
-            console.log(`INFO >> Cтраница загружена [${domain}]`);
-
+        if (/^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/igm.test(obj.domain) === false) {
+            result.errorText = `«${obj.domain}» не является доменным именем`;
+            result.isError = true;
+            return result;
         }
 
+        async function grabInfo(page, container, result) {
 
-        await page.waitForSelector('canvas.sparkline-canvas', { timeout: 5000 })
-            .catch(function (error) {
-                const errorMessage = `ERROR >> Не удалось найти элемент для скриншота\nВозможно информация о таком домене отсутствует, либо ресурс недоступен\n${error}\n\n`
-                console.error(errorMessage);
-                result.errorText += errorMessage;
-                result.isError = true;
-            });
-
-        const container = await page.$('.sparkline-container')
-            .catch(function (error) {
-                const errorMessage = `ERROR >> Не удалось найти контейнер с информацией для скриншота\n${error}\n\n`
-                console.error(errorMessage);
-                result.errorText += errorMessage;
-                result.isError = true;
-            });
-
-        if (result.isError) {
-            page.close();
-            console.log(`INFO >> Страница закрыта [${domain}]\n\n`);
-            return result
-        }
-
-        await page.evaluate(() => {
-            let links = [];
-            document.querySelectorAll('.captures-range-info a')
-                .forEach(a => {
-                    links.push({
-                        href: a.href,
-                        innerText: a.innerText
-                    });
-                });
-            return links;
-        })
-            .then(function (links) {
-                result.links = links;
+            await page.addStyleTag({
+                content: '.sparkline-container{overflow: visible !important; max-width: unset !important; width: max-content;}'
             })
-            .catch(function (error) {
-                const errorMessage = `ERROR >> Не удалось найти ссылки на страницы первого и/или последнего снимка сайта\n\n${error}\n\n`
-                console.error(errorMessage);
-                result.errorText += errorMessage;
-            });
+                .then(() => {
+                    console.log(`INFO >> Добавлены стили для контейнера [${result.domain}]`);
+                })
+                .catch(error => {
+                    const errorMessage = `ERROR >> Не удалось добавить стили для контейнера [${result.domain}]\n\n${error}\n\n`
+                    console.error(errorMessage);
+                    result.errorText += errorMessage;
+                    result.isError = true;
+                });
 
-        await page.addStyleTag({ content: '.sparkline-container{overflow: visible !important; max-width: unset !important; width: max-content;}' });
-
-        try {
             await container.screenshot()
-                .then(function (buffer) {
+                .then(buffer => {
                     result.img = buffer.toString('base64');
                 })
-                .catch(function (error) {
+                .catch(error => {
                     const errorMessage = `ERROR >> Не удалось сделать скриншот\n\n${error}\n\n`
                     console.error(errorMessage);
                     result.errorText += errorMessage;
                     result.isError = true;
                 });
+
+            await page.evaluate(() => {
+                let links = [];
+                document.querySelectorAll('.captures-range-info a')
+                    .forEach(a => {
+                        links.push({
+                            href: a.href,
+                            innerText: a.innerText
+                        });
+                    });
+                return links;
+            })
+                .then(links => {
+                    console.log(`INFO >> Найдены ссылки на страницы первого и последнего снимка сайта [${result.domain}]`);
+                    result.links = links;
+                })
+                .catch(error => {
+                    const errorMessage = `ERROR >> Не удалось найти ссылки на страницы первого и последнего снимка сайта [${result.domain}]\n\n${error}\n\n`
+                    console.error(errorMessage);
+                    result.errorText += errorMessage;
+                });
+
+        }
+
+        try {
+            page = await browser.newPage();
         } catch (error) {
-            const errorMessage = `ERROR >> Не удалось сделать скриншот\n\n${error}\n\n`
+            const errorMessage = `ERROR >> Не удалось открыть вкладку [${obj.domain}]\n${error}\n\n`;
             console.error(errorMessage);
             result.errorText += errorMessage;
             result.isError = true;
+            return result;
         }
 
+        await page.goto(`http://web.archive.org/web/*/${obj.domain}`, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
+            .then(() => {
+                console.log(`INFO >> Открыта страница [${obj.domain}]`);
+            })
+            .catch(error => {
+                const errorMessage = `ERROR >> Не удалось перейти на страницу [${obj.domain}]\n${error}\n\n`;
+                console.error(errorMessage);
+                result.errorText += errorMessage;
+                result.isError = true;
+            });
+
+        await page.waitForSelector('#wm-graph-anchor', { timeout: 5000 })
+            .then(() => {
+                console.log(`INFO >> Найдено содержимое для скриншота [${obj.domain}]`);
+            })
+            .catch(error => {
+                const errorMessage = `ERROR >> Не удалось найти содержимое для скриншота [${obj.domain}]\nВозможно страница с информацией о таком домене отсутствует, либо ресурс недоступен\n${error}\n\n`
+                console.error(errorMessage);
+                result.errorText += errorMessage;
+                result.isError = true;
+            });
+
+        await page.$('.sparkline-container')
+            .then(async container => {
+                if (container) {
+                    console.log(`INFO >> Найден контейнер с информацией для скриншота [${obj.domain}]`);
+
+                    await grabInfo(page, container, result)
+                        .catch(error => {
+                            const errorMessage = `ERROR >> Не удалось собрать информацию [${obj.domain}]\n${error}\n\n`
+                            console.error(errorMessage);
+                            result.errorText += errorMessage;
+                            result.isError = true;
+                        });
+                }
+            })
+            .catch(error => {
+                const errorMessage = `ERROR >> Не удалось найти контейнер с информацией для скриншота [${obj.domain}]\n${error}\n\n`
+                console.error(errorMessage);
+                result.errorText += errorMessage;
+                result.isError = true;
+            });
+
+        await page.goto('about:blank');
+        await page.close();
         console.log(`INFO >> Собран объект:\n`, result);
-        page.close();
-        console.log(`INFO >> Страница закрыта [${domain}]`);
+        console.log(`INFO >> Вкладка закрыта [${obj.domain}]\n\n`);
 
         return result;
     }
@@ -112,60 +143,26 @@ const port = process.env.PORT || 8080;
     app.post('/domain', express.json({ type: 'application/json' }), async function (req, res) {
         let responseData = [];
 
-        // await (async () => {
+        async function processArray(domains) {
 
-        // for (let domain of req.body.domains) {
-        //     let obj = await checkDomain(domain)
-        //     responseData.push(obj);
-        // }
+            let array = domains.length > 3 ? domains.slice(0, 3) : domains;
 
-        async function processArray(array) {
             // делаем "map" массива в промисы
-            const promises = array.map(async (domain) => {
-                let result = await checkDomain(domain);
-                responseData.push(result);
-            });
-            // ждем когда всё промисы будут выполнены
+            const promises = array.map(
+                async domain => {
+                    await checkDomain(domain)
+                        .then(result => responseData.push(result))
+                        .catch(error => console.error('ERROR >> Не удалось проверить домен', error))
+                });
+
+            // ждем когда все промисы будут выполнены
             await Promise.all(promises);
-            console.log('Done!');
+            console.log('INFO >> Все промисы выполнены!');
         }
 
         await processArray(req.body.domains);
 
         res.json(responseData);
-
-        // })();
-
-
     });
 
 })();
-
-
-// var parseUrl = function (url) {
-//     url = decodeURIComponent(url)
-//     if (!/^(?:f|ht)tps?\:\/\//.test(url)) {
-//         url = 'http://' + url;
-//     }
-//     return url;
-// };
-
-// app.get('/domains', function (req, res) {
-
-//     const domains = decodeURIComponent(req.query.domains);
-//     console.log(domains);
-
-//     let response = {
-//         domains: domains.split('\r\n')
-//     };
-
-//     for (var i = 0; i < response.domains.length; i++) {
-//         console.log(response.domains[i]);
-//     }
-
-//     res.json(response);
-// });
-
-
-
-

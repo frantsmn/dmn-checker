@@ -4,13 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Domain Checker</title>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#2d89ef">
+    <meta name="theme-color" content="#ffffff">
 
     <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
@@ -18,30 +20,62 @@
 
 <body>
 
-    <div id="form">
+    <div id="app">
 
         <textarea name="domains" id="domains" rows="10" placeholder="example.com
 test.by
-domain.net"></textarea>
-        <input type="button" id="button" value="Проверить">
+domain.net" v-model="textareaText"></textarea>
+        <input type="button" value="Проверить" @click="process">
 
     </div>
 
     <div id="container">
 
-        <!-- <div class="row">
-            <h3>vk.com</h3>
-            <img
-                src="data:image/png;base64, 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"><a
-                href="http://web.archive.org/web/20110925171548/test.by">September 25, 2011</a><a
-                href="http://web.archive.org/web/20190717090150/test.by">July 17, 2019</a>
-        </div> -->
+        <card-component v-for="item in items" :key="item.id"></card-component>
 
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+    <script type="module" src="js/index.js"></script>
+
 
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/view.js"></script>
 
+    <script type="text/x-template" id="card-component">
+        <div class="card">
+        <header class="card__header">
+        <a class="card__title" href="https://{{ item.domain }}" target="_blank">{{ item.domain }}</a>
+
+        <button @click="remove">Удалить</button>
+        </header>
+
+        <div class="card__body">
+        <a class="card__link" href="http://web.archive.org/web/*/{{ item.domain }}" target="_blank">
+            <img class="card__image" src="data:image/png;base64, {{ item.img }}" />
+            <span class="card__link card__link--info">Подробнее на web.archive.org</span>
+        </a>
+
+        <a
+            class="card__link card__link--first-screenshot"
+            href="{{ item.links[0].href }}"
+            target="_blank"
+        >Первый снимок: {{ item.links[0].innerText }}</a>
+
+        <a
+            class="card__link card__link--last-screenshot"
+            href="{{ item.links[1].href }}"
+            target="_blank"
+        >Последний снимок: {{ item.links[1].innerText }}</a>
+        </div>
+
+        <footer class="card__footer">
+        <!-- -->
+        </footer>
+    </div>
+    </script>
 
 </body>
 
