@@ -20,4 +20,5 @@ textarea {
 .card__image-wrapper img {
   width: auto;
   min-height: 80px;
+  margin: 0 auto;
 }
