@@ -26,7 +26,7 @@
 
     <main class="container" id="app">
 
-        <div class="card border-primary mb-5">
+        <div class="card border-primary mb-5" style="position: relative;">
             <form class="card-body" @submit.prevent="onSubmit">
                 <div class="form-group">
                     <label class="lead" for="domains">Введите домены</label>
@@ -38,6 +38,13 @@ domain.net" v-model="textareaText"></textarea>
                 <input class="btn btn-primary btn-lg mr-2" type="submit" v-bind:disabled="isBusy" value="Проверить">
                 <input class="btn btn-lg btn-outline-danger" type="reset" value="Очистить">
             </form>
+
+            <div v-if="isBusy"
+                class="progress"
+                style="height: 5px; border-radius: 0 0 0.25rem 0.25rem; position: absolute; bottom: -1px; width: 100%;">
+                <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
+                    style="width: 100%;"></div>
+            </div>
         </div>
 
 
