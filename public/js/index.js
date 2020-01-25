@@ -5,25 +5,22 @@ Vue.component('card-component', {
 
 new Vue({
     el: '#app',
-    
     data: {
+        isBusy: false,
         textareaText: '',
         domains: [],
         items: []
     },
 
     methods: {
-        process: async function () {
-
+        onSubmit: async function () {
+            this.isBusy = true;
             this.domains = this.textareaText
                 .split('\n')
                 .map((item, index) => ({ id: index, domain: item }));
-
-            console.log('Request for domains: ', this.domains);
-
+            // console.log('Request for domains: ', this.domains);
             this.items = await request({ domains: this.domains });
-
-            console.log(this.items);
+            this.isBusy = false;
 
             async function request(data) {
                 let response = await fetch('/domain', {
@@ -41,7 +38,6 @@ new Vue({
                     alert("Ошибка HTTP: " + response.status);
                 }
             }
-
         }
     }
 });

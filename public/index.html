@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
@@ -12,70 +12,79 @@
     <link rel="manifest" href="/site.webmanifest">
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#2d89ef">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#111111">
 
-    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
 </head>
 
 <body>
 
-    <div id="app">
+    <header class="container pt-4 pb-4">
+        <h1 class="text-center">Domain Checker</h1>
+    </header>
 
-        <textarea name="domains" id="domains" rows="10" placeholder="example.com
+    <main class="container" id="app">
+
+        <div class="card border-primary mb-5">
+            <form class="card-body" @submit.prevent="onSubmit">
+                <div class="form-group">
+                    <label class="lead" for="domains">Введите домены</label>
+                    <textarea class="form-control" name="domains" id="domains" rows="4" placeholder="example.com
 test.by
 domain.net" v-model="textareaText"></textarea>
-        <input type="button" value="Проверить" @click="process">
+                </div>
 
-    </div>
-
-    <div id="container">
-
-        <card-component v-for="item in items" :key="item.id"></card-component>
-
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
-
-    <script type="module" src="js/index.js"></script>
-
-
-    <script type="module" src="js/main.js"></script>
-    <script type="module" src="js/view.js"></script>
-
-    <script type="text/x-template" id="card-component">
-        <div class="card">
-        <header class="card__header">
-        <a class="card__title" href="https://{{ item.domain }}" target="_blank">{{ item.domain }}</a>
-
-        <button @click="remove">Удалить</button>
-        </header>
-
-        <div class="card__body">
-        <a class="card__link" href="http://web.archive.org/web/*/{{ item.domain }}" target="_blank">
-            <img class="card__image" src="data:image/png;base64, {{ item.img }}" />
-            <span class="card__link card__link--info">Подробнее на web.archive.org</span>
-        </a>
-
-        <a
-            class="card__link card__link--first-screenshot"
-            href="{{ item.links[0].href }}"
-            target="_blank"
-        >Первый снимок: {{ item.links[0].innerText }}</a>
-
-        <a
-            class="card__link card__link--last-screenshot"
-            href="{{ item.links[1].href }}"
-            target="_blank"
-        >Последний снимок: {{ item.links[1].innerText }}</a>
+                <input class="btn btn-primary btn-lg mr-2" type="submit" v-bind:disabled="isBusy" value="Проверить">
+                <input class="btn btn-lg btn-outline-danger" type="reset" value="Очистить">
+            </form>
         </div>
 
-        <footer class="card__footer">
-        <!-- -->
-        </footer>
-    </div>
+
+        <div class="mt-3" id="container">
+            <card-component v-for="item in items" :item="item" :key="item.id"></card-component>
+        </div>
+
+    </main>
+
+    <script type="text/x-template" id="card-component">
+        <div v-bind:class="[item.isError ? 'border-danger' : 'border-success', 'card mb-3']">
+
+            <div class="card-body p-3">
+                <h4 class="m-0 p-0">{{ item.domain }}</h4>
+                <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
+            </div>
+
+            <div v-if="item.isError">
+
+                <div class="card-body text-danger">
+                    {{ item.errorText }}
+                </div>
+
+            </div>
+            <div v-else>
+                
+                <div class="card__image-wrapper ml-3 mr-3 rounded">
+                    <img class="card__image" v-bind:src="'data:image/png;base64,' + item.img">
+                </div>
+
+                <div class="card-body p-3 row">
+                    <div class="col-12 col-md-6">
+                        <p class="pt-1 pb-1 m-0">Перейти на <a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></p>
+                        <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'http://web.archive.org/web/*/' + item.domain" target="_blank">web.archive.org</a></p>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <p class="pt-1 pb-1 m-0">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
+                        <p class="pt-1 pb-1 m-0">Последний снимок <a v-bind:href="item.links[1].href" target="_blank">{{ item.links[1].innerText }}</a></p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="js/index.js"></script>
 
 </body>
 
