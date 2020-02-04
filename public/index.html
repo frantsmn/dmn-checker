@@ -84,9 +84,10 @@ domain.net" v-model="textareaText"></textarea>
                         <p class="pt-1 pb-1 m-0">Перейти на <a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></p>
                         <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'http://web.archive.org/web/*/' + item.domain" target="_blank">web.archive.org</a></p>
                     </div>
-                    <div class="col-12 col-lg-4">
-                        <p class="pt-1 pb-1 m-0">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
-                        <p class="pt-1 pb-1 m-0">Последний снимок <a v-bind:href="item.links[1].href" target="_blank">{{ item.links[1].innerText }}</a></p>
+                    <div class="col-12 col-md-4">
+                        <p class="pt-1 pb-1 m-0" v-if="item.links[0]">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
+                        <p class="pt-1 pb-1 m-0" v-if="item.links[1]">Последний снимок <a v-bind:href="item.links[1].href" target="_blank">{{ item.links[1].innerText }}</a></p>
+                        <p class="pt-1 pb-1 m-0" v-else="item.links[0]">Последний снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
                     </div>
                     <div class="col-12 col-lg-4">
                         <p class="pt-1 pb-1 m-0">Доноры <a v-bind:href="'https://www.linkpad.ru/?search=' + item.domain" target="_blank">{{ item.donors }}</a></p>
