@@ -7,24 +7,61 @@ const port = process.env.PORT || 8080;
     // headless: false,
     const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
 
-    async function checkDomain(obj) {
 
+    async function grabFromLinkpad(result) {
         let page;
 
-        let result = {
-            id: obj.id,
-            domain: obj.domain,
-            img: '',
-            links: [],
-            isError: false,
-            errorText: ''
-        };
-
-        if (/^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/igm.test(obj.domain) === false) {
-            result.errorText = `«${obj.domain}» не является доменным именем`;
-            result.isError = true;
+        try {
+            page = await browser.newPage();
+        } catch (error) {
+            const errorMessage = `ERROR >> Не удалось открыть вкладку для linkpad.ru [${result.domain}]\n${error}\n\n`;
+            console.error(errorMessage);
+            result.errorText += errorMessage;
             return result;
         }
+
+        await page.goto(`https://www.linkpad.ru/?search=${result.domain}`, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
+            .then(() => {
+                console.log(`INFO >> Открыта страница linkpad.ru [${result.domain}]`);
+            })
+            .catch(error => {
+                const errorMessage = `ERROR >> Не удалось перейти на страницу linkpad.ru [${result.domain}]\n${error}\n\n`;
+                console.error(errorMessage);
+                result.errorText += errorMessage;
+            });
+
+        await page.waitForSelector('#a4', { timeout: 5000 })
+            .then(() => {
+                console.log(`INFO >> Найдены искомые данные на linkpad.ru [${result.domain}]`);
+            })
+            .catch(error => {
+                const errorMessage = `ERROR >> Не удалось найти искомые данные на linkpad.ru [${result.domain}]\nВозможно страница с информацией о таком домене отсутствует, либо ресурс недоступен\n${error}\n\n`
+                console.error(errorMessage);
+                result.errorText += errorMessage;
+            });
+
+        await page.evaluate(() => {
+            return document.querySelector('#a4').innerText;
+        })
+            .then(donors => {
+                console.log(`INFO >> Найдены данные на linkpad.ru [${result.domain}]`);
+                result.donors = donors;
+            })
+            .catch(error => {
+                const errorMessage = `ERROR >> Не удалось найти данные на linkpad.ru [${result.domain}]\n\n${error}\n\n`
+                console.error(errorMessage);
+                result.errorText += errorMessage;
+            });
+
+
+        await page.goto('about:blank');
+        await page.close();
+        console.log(`INFO >> Вкладка закрыта [${result.domain}]\n\n`);
+
+        return result;
+    }
+
+    async function grabFromWebArchive(result) {
 
         async function grabInfo(page, container, result) {
 
@@ -75,22 +112,24 @@ const port = process.env.PORT || 8080;
 
         }
 
+        let page;
+
         try {
             page = await browser.newPage();
         } catch (error) {
-            const errorMessage = `ERROR >> Не удалось открыть вкладку [${obj.domain}]\n${error}\n\n`;
+            const errorMessage = `ERROR >> Не удалось открыть вкладку для web.archive.org [${result.domain}]\n${error}\n\n`;
             console.error(errorMessage);
             result.errorText += errorMessage;
             result.isError = true;
             return result;
         }
 
-        await page.goto(`http://web.archive.org/web/*/${obj.domain}`, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
+        await page.goto(`http://web.archive.org/web/*/${result.domain}`, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
             .then(() => {
-                console.log(`INFO >> Открыта страница [${obj.domain}]`);
+                console.log(`INFO >> Открыта страница [${result.domain}]`);
             })
             .catch(error => {
-                const errorMessage = `ERROR >> Не удалось перейти на страницу [${obj.domain}]\n${error}\n\n`;
+                const errorMessage = `ERROR >> Не удалось перейти на страницу [${result.domain}]\n${error}\n\n`;
                 console.error(errorMessage);
                 result.errorText += errorMessage;
                 result.isError = true;
@@ -98,10 +137,10 @@ const port = process.env.PORT || 8080;
 
         await page.waitForSelector('#wm-graph-anchor', { timeout: 5000 })
             .then(() => {
-                console.log(`INFO >> Найдено содержимое для скриншота [${obj.domain}]`);
+                console.log(`INFO >> Найдено содержимое для скриншота [${result.domain}]`);
             })
             .catch(error => {
-                const errorMessage = `ERROR >> Не удалось найти содержимое для скриншота [${obj.domain}]\nВозможно страница с информацией о таком домене отсутствует, либо ресурс недоступен\n${error}\n\n`
+                const errorMessage = `ERROR >> Не удалось найти содержимое для скриншота [${result.domain}]\nВозможно страница с информацией о таком домене отсутствует, либо ресурс недоступен\n${error}\n\n`
                 console.error(errorMessage);
                 result.errorText += errorMessage;
                 result.isError = true;
@@ -110,11 +149,11 @@ const port = process.env.PORT || 8080;
         await page.$('.sparkline-container')
             .then(async container => {
                 if (container) {
-                    console.log(`INFO >> Найден контейнер с информацией для скриншота [${obj.domain}]`);
+                    console.log(`INFO >> Найден контейнер с информацией для скриншота [${result.domain}]`);
 
                     await grabInfo(page, container, result)
                         .catch(error => {
-                            const errorMessage = `ERROR >> Не удалось собрать информацию [${obj.domain}]\n${error}\n\n`
+                            const errorMessage = `ERROR >> Не удалось собрать информацию [${result.domain}]\n${error}\n\n`
                             console.error(errorMessage);
                             result.errorText += errorMessage;
                             result.isError = true;
@@ -122,7 +161,7 @@ const port = process.env.PORT || 8080;
                 }
             })
             .catch(error => {
-                const errorMessage = `ERROR >> Не удалось найти контейнер с информацией для скриншота [${obj.domain}]\n${error}\n\n`
+                const errorMessage = `ERROR >> Не удалось найти контейнер с информацией для скриншота [${result.domain}]\n${error}\n\n`
                 console.error(errorMessage);
                 result.errorText += errorMessage;
                 result.isError = true;
@@ -130,11 +169,38 @@ const port = process.env.PORT || 8080;
 
         await page.goto('about:blank');
         await page.close();
-        console.log(`INFO >> Собран объект:\n`, result);
-        console.log(`INFO >> Вкладка закрыта [${obj.domain}]\n\n`);
+        console.log(`INFO >> Вкладка закрыта [${result.domain}]\n\n`);
 
         return result;
     }
+
+    async function checkDomain(obj) {
+        let result = {
+            id: obj.id,
+            domain: obj.domain,
+            img: '',
+            links: [],
+            donors: '',
+            isError: false,
+            errorText: ''
+        };
+
+        if (/^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/igm.test(obj.domain) === false) {
+            result.errorText = `«${obj.domain}» не является доменным именем`;
+            result.isError = true;
+            return result;
+        }
+
+        // ждем когда все промисы будут выполнены
+        await Promise.all([
+            grabFromWebArchive(result),
+            grabFromLinkpad(result)
+        ]);
+
+        console.log(`Для домена: ${obj.domain} объект собран!\n=============\n\n`);
+        return result;
+    }
+
 
     app.use(express.static('public'));
 
@@ -172,7 +238,7 @@ const port = process.env.PORT || 8080;
         //     errorText: '',
         //     isError: false
         // }]);
-        
+
     });
 
 })();

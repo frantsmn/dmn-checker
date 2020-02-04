@@ -36,7 +36,7 @@ domain.net" v-model="textareaText"></textarea>
                 </div>
 
                 <input class="btn btn-primary btn-lg mr-2" type="submit" v-bind:disabled="isBusy" value="Проверить">
-                <input class="btn btn-lg btn-outline-danger" type="reset" @click="onReset" value="Очистить">
+                <input class="btn btn-lg btn-outline-danger" type="reset" @click="onReset" v-bind:disabled="isBusy" value="Очистить">
             </form>
 
             <div v-if="isBusy" class="progress"
@@ -80,13 +80,16 @@ domain.net" v-model="textareaText"></textarea>
                 </div>
 
                 <div class="card-body p-3 row">
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-lg-4">
                         <p class="pt-1 pb-1 m-0">Перейти на <a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></p>
                         <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'http://web.archive.org/web/*/' + item.domain" target="_blank">web.archive.org</a></p>
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-lg-4">
                         <p class="pt-1 pb-1 m-0">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
                         <p class="pt-1 pb-1 m-0">Последний снимок <a v-bind:href="item.links[1].href" target="_blank">{{ item.links[1].innerText }}</a></p>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <p class="pt-1 pb-1 m-0">Доноры <a v-bind:href="'https://www.linkpad.ru/?search=' + item.domain" target="_blank">{{ item.donors }}</a></p>
                     </div>
                 </div>
 
