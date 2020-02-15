@@ -20,40 +20,156 @@
 
 <body>
 
-    <header class="container pt-4 pb-4">
-        <h1 class="text-center">Domain Checker</h1>
+    <header class="container mb-3">
+        <h1>
+            <a href="/" style="font-size: 0.62em;">Domain Checker</a>
+        </h1>
     </header>
 
-    <main class="container" id="app">
+    <main class="container mt-2" id="app">
 
-        <div class="card border-primary mb-5" style="position: relative;">
-            <form class="card-body" @submit.prevent="onSubmit">
-                <div class="form-group">
-                    <label class="lead" for="domains">Введите домены</label>
-                    <textarea class="form-control" name="domains" id="domains" rows="4" placeholder="example.com
-test.by
-domain.net" v-model="textareaText"></textarea>
+        <ul class="nav nav-tabs" id="tablist" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="list-tab" data-toggle="tab" href="#list" role="tab" aria-controls="home"
+                    aria-selected="true">Проверка списка</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="query-tab" data-toggle="tab" href="#query" role="tab" aria-controls="profile"
+                    aria-selected="false">Проверка по запросу</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane show active" id="list" role="tabpanel" aria-labelledby="list-tab">
+
+                <div class="card border-secondary border-top-0 rounded-0 mb-5">
+
+                    <div class="row card-body">
+
+                        <div class="col">
+                            <form @submit.prevent="onSubmit">
+                                <div class="form-group">
+                                    <label class="lead" for="domains">Домены на проверку</label>
+                                    <textarea class="form-control" name="domains" id="domains" rows="7"
+                                        placeholder="example.com" v-model="textareaText"></textarea>
+                                </div>
+
+                                <input class="btn btn-primary mr-2 mb-3" type="submit" v-bind:disabled="isBusy"
+                                    value="Проверить">
+                                <input class="btn btn-outline-danger mb-3" type="reset" @click="onReset"
+                                    v-bind:disabled="isBusy" value="Очистить">
+                            </form>
+                        </div>
+
+                        <div class="col pb-3">
+                            <div class="col-12 border border-secondary p-3 rounded">
+                                <div class="form-group">
+                                    <label class="lead">Сортировка</label>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input v-model="sort" @change="sortItems" id="sort-by-alphabet" class="form-check-input" type="radio" name="sort" value="alphabet">
+                                        <label class="form-check-label" for="sort-by-alphabet">
+                                            по алфавиту
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input v-model="sort" @change="sortItems" id="sort-by-age" class="form-check-input" type="radio" name="sort" value="age">
+                                        <label class="form-check-label" for="sort-by-age">
+                                            по возрасту
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input v-model="sort" @change="sortItems" id="sort-by-donors" class="form-check-input" type="radio" name="sort" value="donors">
+                                        <label class="form-check-label" for="sort-by-donors">
+                                            по количеству доноров
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-sm btn-outline-info" @click="sort = null; sortItems(items);">Сбросить</button>
+
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="col-12 border border-secondary p-3 rounded">
+
+                                <div class="form-group">
+                                    <label class="lead">Фильтр</label>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input disabled class="form-check-input position-static" type="checkbox"
+                                            name="blankRadio" id="blankRadio1" value="option1" aria-label="...">
+                                        <label class="form-check-label mb-1" for="gridCheck">
+                                            Первый снимок сделан до:
+                                        </label>
+                                    </div>
+                                    <input disabled type="month" value="today" class="form-control form-control-sm" style="max-width: 170px;">
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input disabled class="form-check-input position-static" type="checkbox"
+                                            name="blankRadio" id="blankRadio1" value="option1" aria-label="...">
+                                        <label class="form-check-label mb-1" for="gridCheck">
+                                            Последний снимок сделан после:
+                                        </label>
+                                    </div>
+                                    <input disabled type="month" value="today" class="form-control form-control-sm" id=""
+                                        aria-describedby="emailHelp" style="max-width: 170px;">
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input disabled class="form-check-input position-static" type="checkbox"
+                                            name="blankRadio" id="blankRadio1" value="option1" aria-label="...">
+                                        <label class="form-check-label" for="gridCheck">
+                                            Скрывать результаты с ошибками
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div v-if="isBusy" class="progress"
+                        style="height: 5px; border-radius: 0 0 0.25rem 0.25rem; position: absolute; bottom: -1px; width: 100%;">
+
+                        <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
+                            style="width: 100%; position: absolute; bottom: 1px; height: 4px; opacity: 0.3;">
+                        </div>
+
+                        <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
+                            v-bind:style="'width:' + 100 / domains.length * items.length +'%'"></div>
+
+                    </div>
+
                 </div>
 
-                <input class="btn btn-primary btn-lg mr-2" type="submit" v-bind:disabled="isBusy" value="Проверить">
-                <input class="btn btn-lg btn-outline-danger" type="reset" @click="onReset" v-bind:disabled="isBusy" value="Очистить">
-            </form>
-
-            <div v-if="isBusy" class="progress"
-                style="height: 5px; border-radius: 0 0 0.25rem 0.25rem; position: absolute; bottom: -1px; width: 100%;">
-
-                <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
-                    style="width: 100%; position: absolute; bottom: 1px; height: 4px; opacity: 0.3;"></div>
-
-                <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
-                    v-bind:style="'width:' + 100 / domains.length * items.length +'%'"></div>
+                <div class="mt-3" id="container">
+                    <card-component v-for="item in items" :item="item" :key="item.id"></card-component>
+                </div>
 
             </div>
-        </div>
 
+            <div class="tab-pane show" id="query" role="tabpanel" aria-labelledby="query-tab">
 
-        <div class="mt-3" id="container">
-            <card-component v-for="item in items" :item="item" :key="item.id"></card-component>
+                <div class="card border-secondary border-top-0 rounded-0">
+                    <div class="card-body">
+                        В разработке...
+                    </div>
+                    <div class="card-footer">
+                        ...
+                    </div>
+                </div>
+
+            </div>
         </div>
 
     </main>
@@ -84,7 +200,7 @@ domain.net" v-model="textareaText"></textarea>
                         <p class="pt-1 pb-1 m-0">Перейти на <a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></p>
                         <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'http://web.archive.org/web/*/' + item.domain" target="_blank">web.archive.org</a></p>
                     </div>
-                    <div class="col-12 col-md-4">
+                    <div v-if="item.links.length" class="col-12 col-md-4">
                         <p class="pt-1 pb-1 m-0" v-if="item.links[0]">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
                         <p class="pt-1 pb-1 m-0" v-if="item.links[1]">Последний снимок <a v-bind:href="item.links[1].href" target="_blank">{{ item.links[1].innerText }}</a></p>
                         <p class="pt-1 pb-1 m-0" v-else="item.links[0]">Последний снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
@@ -98,6 +214,19 @@ domain.net" v-model="textareaText"></textarea>
 
         </div>
     </script>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="js/index.js"></script>
 
