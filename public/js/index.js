@@ -1,3 +1,5 @@
+import sortItems from "../js/sortItems.js";
+
 Vue.component('card-component', {
     props: ['item'],
     template: '#card-component',
@@ -6,11 +8,51 @@ Vue.component('card-component', {
 new Vue({
     el: '#app',
     data: {
-        sort: '',
+        sort: null,
+        filter: {
+            firstShot: false,
+            lastShot: false,
+            hideErrors: false
+        },
         isBusy: false,
         textareaText: '',
         domains: [],
         items: []
+    },
+
+    //Загрузка состояния инпутов сортировки и фильтров из localStorage
+    mounted() {
+        if (localStorage.sort) {
+            this.sort = localStorage.sort;
+        }
+        if (localStorage.filter) {
+            this.filter = JSON.parse(localStorage.filter);
+        }
+    },
+
+    computed: {
+        filteredItems() {
+            sortItems(this.items, this.sort);
+
+            if (this.filter.hideErrors)
+                return this.items.filter(item => !item.isError);
+
+            return this.items
+        }
+    },
+
+    //Сохранение состояния инпутов сортировки и фильтров в localStorage
+    watch: {
+        sort(sortType) {
+            localStorage.sort = sortType;
+        },
+        filter: {
+            handler: function (val, oldVal) {
+                let filterState = JSON.stringify(val);
+                localStorage.setItem('filter', filterState);
+            },
+            deep: true
+        }
     },
 
     methods: {
@@ -51,8 +93,8 @@ new Vue({
                     let response = await request({ domains: group });
                     console.log('Response: ', response);
                     response.forEach(item => items.push(item));
-                    this.sortItems(items);
                 }
+
                 console.log('Done for all domains!!!');
             }
 
@@ -67,64 +109,6 @@ new Vue({
                 this.isBusy = false;
             }, 600);
 
-        },
-
-        sortItems: function (items) {
-            items = items.length ? items : this.items;
-            switch (this.sort) {
-                case 'alphabet':
-                    this.sortByAlphabet(items);
-                    break;
-
-                case 'age':
-                    this.sortByAge(items);
-                    break;
-
-                case 'donors':
-                    this.sortByDonors(items);
-                    break;
-
-                default:
-                    this.sortById(items);
-                    break;
-            }
-        },
-        sortByAlphabet: function (items) {
-            items.sort((a, b) => {
-                if (a.domain > b.domain) {
-                    return 1;
-                }
-                if (a.domain < b.domain) {
-                    return -1;
-                }
-                return 0;
-            });
-            console.log('Sorted by alpabet');
-        },
-        sortByAge: function (items) {
-            items.sort((a, b) => {
-                if (a.links.length && b.links.length) {
-                    let _a = parseInt(a.links[0].timestamp);
-                    let _b = parseInt(b.links[0].timestamp);
-                    return _a - _b;
-                } else {
-                    return -1;
-                }
-            });
-            console.log('Sorted by age');
-        },
-        sortByDonors: function (items) {
-            items.sort((a, b) => {
-                let _a = parseInt(a.donors.replace(/\s/g, ""));
-                let _b = parseInt(b.donors.replace(/\s/g, ""));
-                return _b - _a;
-            });
-            console.log('Sorted by donors');
-        },
-        sortById: function (items) {
-            items.sort((a, b) => a.id - b.id);
-            console.log('Sorted by id');
         }
-
     }
 });

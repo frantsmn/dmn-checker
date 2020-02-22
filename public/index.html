@@ -46,8 +46,9 @@
 
                     <div class="row card-body">
 
+                        <!-- Форма -->
                         <div class="col">
-                            <form @submit.prevent="onSubmit">
+                            <form @submit.prevent="onSubmit" class="col mb-3">
                                 <div class="form-group">
                                     <label class="lead" for="domains">Домены на проверку</label>
                                     <textarea class="form-control" name="domains" id="domains" rows="7"
@@ -61,39 +62,47 @@
                             </form>
                         </div>
 
-                        <div class="col pb-3">
-                            <div class="col-12 border border-secondary p-3 rounded">
+                        <!-- Сортировка -->
+                        <div class="col-xs-12 col-md">
+                            <div class="col border border-secondary rounded p-3 mb-3">
                                 <div class="form-group">
                                     <label class="lead">Сортировка</label>
                                 </div>
 
                                 <div class="form-group">
-                                    <div class="form-check">
-                                        <input v-model="sort" @change="sortItems" id="sort-by-alphabet" class="form-check-input" type="radio" name="sort" value="alphabet">
-                                        <label class="form-check-label" for="sort-by-alphabet">
+                                    <div class="custom-control custom-radio mb-1">
+                                        <input v-model="sort"
+                                            id="sort-by-alphabet" class="custom-control-input" type="radio" name="sort"
+                                            value="alphabet">
+                                        <label class="custom-control-label" for="sort-by-alphabet">
                                             по алфавиту
                                         </label>
                                     </div>
-                                    <div class="form-check">
-                                        <input v-model="sort" @change="sortItems" id="sort-by-age" class="form-check-input" type="radio" name="sort" value="age">
-                                        <label class="form-check-label" for="sort-by-age">
+
+                                    <div class="custom-control custom-radio mb-1">
+                                        <input v-model="sort" id="sort-by-age"
+                                            class="custom-control-input" type="radio" name="sort" value="age">
+                                        <label class="custom-control-label" for="sort-by-age">
                                             по возрасту
                                         </label>
                                     </div>
-                                    <div class="form-check">
-                                        <input v-model="sort" @change="sortItems" id="sort-by-donors" class="form-check-input" type="radio" name="sort" value="donors">
-                                        <label class="form-check-label" for="sort-by-donors">
+
+                                    <div class="custom-control custom-radio">
+                                        <input v-model="sort" id="sort-by-donors"
+                                            class="custom-control-input" type="radio" name="sort" value="donors">
+                                        <label class="custom-control-label" for="sort-by-donors">
                                             по количеству доноров
                                         </label>
                                     </div>
                                 </div>
 
-                                <button class="btn btn-sm btn-outline-info" @click="sort = null; sortItems(items);">Сбросить</button>
-
+                                <button class="btn btn-sm btn-outline-info"
+                                    @click="sort = null;">Сбросить</button>
                             </div>
                         </div>
 
-                        <div class="col">
+                        <!-- Фильтр -->
+                        <div class="col-xs-12 col-lg">
                             <div class="col-12 border border-secondary p-3 rounded">
 
                                 <div class="form-group">
@@ -101,35 +110,31 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <div class="form-check">
-                                        <input disabled class="form-check-input position-static" type="checkbox"
-                                            name="blankRadio" id="blankRadio1" value="option1" aria-label="...">
-                                        <label class="form-check-label mb-1" for="gridCheck">
-                                            Первый снимок сделан до:
-                                        </label>
+                                    <div class="custom-control custom-switch mb-1">
+                                        <input type="checkbox" class="custom-control-input" id="firstShot"
+                                            name="firstShot" v-model="filter.firstShot" disabled>
+                                        <label class="custom-control-label" for="firstShot">Первый снимок сделан
+                                            до:</label>
                                     </div>
-                                    <input disabled type="month" value="today" class="form-control form-control-sm" style="max-width: 170px;">
+                                    <input type="month" class="form-control form-control-sm" style="max-width: 220px;">
                                 </div>
 
                                 <div class="form-group">
-                                    <div class="form-check">
-                                        <input disabled class="form-check-input position-static" type="checkbox"
-                                            name="blankRadio" id="blankRadio1" value="option1" aria-label="...">
-                                        <label class="form-check-label mb-1" for="gridCheck">
-                                            Последний снимок сделан после:
-                                        </label>
+                                    <div class="custom-control custom-switch mb-1">
+                                        <input type="checkbox" class="custom-control-input" id="lastShot"
+                                            name="lastShot" v-model="filter.lastShot" disabled>
+                                        <label class="custom-control-label" for="lastShot">Последний снимок
+                                            сделан после:</label>
                                     </div>
-                                    <input disabled type="month" value="today" class="form-control form-control-sm" id=""
-                                        aria-describedby="emailHelp" style="max-width: 170px;">
+                                    <input type="month" class="form-control form-control-sm" style="max-width: 220px;">
                                 </div>
 
                                 <div class="form-group">
-                                    <div class="form-check">
-                                        <input disabled class="form-check-input position-static" type="checkbox"
-                                            name="blankRadio" id="blankRadio1" value="option1" aria-label="...">
-                                        <label class="form-check-label" for="gridCheck">
-                                            Скрывать результаты с ошибками
-                                        </label>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="hideErrors"
+                                            name="hideErrors" v-model="filter.hideErrors">
+                                        <label class="custom-control-label" for="hideErrors">Скрывать результаты с
+                                            ошибками</label>
                                     </div>
                                 </div>
 
@@ -139,21 +144,23 @@
                     </div>
 
                     <div v-if="isBusy" class="progress"
-                        style="height: 5px; border-radius: 0 0 0.25rem 0.25rem; position: absolute; bottom: -1px; width: 100%;">
+                        style="height: 5px; border-radius: 0; position: absolute; bottom: -1px; left: -1px; width: 100%;">
 
                         <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
-                            style="width: 100%; position: absolute; bottom: 1px; height: 4px; opacity: 0.3;">
+                            style="width: 100%; position: absolute; height: 5px; opacity: 0.4;">
                         </div>
 
-                        <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
-                            v-bind:style="'width:' + 100 / domains.length * items.length +'%'"></div>
+                        <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                            v-bind:style="'width:' + 50 / domains.length * items.length +'%'">
+                        </div>
 
                     </div>
 
                 </div>
 
                 <div class="mt-3" id="container">
-                    <card-component v-for="item in items" :item="item" :key="item.id"></card-component>
+                    <!-- <card-component v-for="item in items" :item="item" :key="item.id"></card-component> -->
+                    <card-component v-for="item in filteredItems" :item="item" :key="item.id"></card-component>
                 </div>
 
             </div>
@@ -162,10 +169,10 @@
 
                 <div class="card border-secondary border-top-0 rounded-0">
                     <div class="card-body">
-                        В разработке...
+                        Все еще разработке...
                     </div>
                     <div class="card-footer">
-                        ...
+                        ⏳
                     </div>
                 </div>
 
@@ -228,7 +235,7 @@
         crossorigin="anonymous"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="js/index.js"></script>
+    <script type="module" src="js/index.js"></script>
 
 </body>
 

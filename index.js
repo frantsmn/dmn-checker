@@ -15,7 +15,7 @@ const domainChecker = require('./model/domainChecker');
 
     app.post('/domain', express.json({ type: 'application/json' }), async (req, res) => {
 
-        let data = await domainChecker(browser, (req.body.domains))
+        let data = await domainChecker(browser, (req.body.domains));
         res.json(data);
 
     });
