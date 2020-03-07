@@ -11,7 +11,9 @@ new Vue({
         sort: null,
         filter: {
             firstShot: false,
+            firstShotDate: 0,
             lastShot: false,
+            lastShotDate: 0,
             hideErrors: false
         },
         isBusy: false,
@@ -34,10 +36,26 @@ new Vue({
         filteredItems() {
             sortItems(this.items, this.sort);
 
-            if (this.filter.hideErrors)
-                return this.items.filter(item => !item.isError);
+            let items = this.items;
 
-            return this.items
+            if (this.filter.hideErrors)
+                items = this.items.filter(item => !item.isError);
+
+            if (this.filter.firstShot && this.filter.firstShotDate)
+                items = this.items.filter(item => {
+                    if (item.links.length) {
+                        return item.links[0].timestamp <= Date.parse(this.filter.firstShotDate)
+                    } return true;
+                });
+
+            if (this.filter.lastShot && this.filter.lastShotDate)
+                items = this.items.filter(item => {
+                    if (item.links.length) {
+                        return item.links[item.links.length - 1].timestamp >= Date.parse(this.filter.lastShotDate)
+                    } return true;
+                });
+
+            return items
         }
     },
 

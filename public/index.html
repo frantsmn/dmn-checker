@@ -71,33 +71,31 @@
 
                                 <div class="form-group">
                                     <div class="custom-control custom-radio mb-1">
-                                        <input v-model="sort"
-                                            id="sort-by-alphabet" class="custom-control-input" type="radio" name="sort"
-                                            value="alphabet">
+                                        <input v-model="sort" id="sort-by-alphabet" class="custom-control-input"
+                                            type="radio" name="sort" value="alphabet">
                                         <label class="custom-control-label" for="sort-by-alphabet">
                                             по алфавиту
                                         </label>
                                     </div>
 
                                     <div class="custom-control custom-radio mb-1">
-                                        <input v-model="sort" id="sort-by-age"
-                                            class="custom-control-input" type="radio" name="sort" value="age">
+                                        <input v-model="sort" id="sort-by-age" class="custom-control-input" type="radio"
+                                            name="sort" value="age">
                                         <label class="custom-control-label" for="sort-by-age">
                                             по возрасту
                                         </label>
                                     </div>
 
                                     <div class="custom-control custom-radio">
-                                        <input v-model="sort" id="sort-by-donors"
-                                            class="custom-control-input" type="radio" name="sort" value="donors">
+                                        <input v-model="sort" id="sort-by-donors" class="custom-control-input"
+                                            type="radio" name="sort" value="donors">
                                         <label class="custom-control-label" for="sort-by-donors">
                                             по количеству доноров
                                         </label>
                                     </div>
                                 </div>
 
-                                <button class="btn btn-sm btn-outline-info"
-                                    @click="sort = null;">Сбросить</button>
+                                <button class="btn btn-sm btn-outline-info" @click="sort = null;">Сбросить</button>
                             </div>
                         </div>
 
@@ -112,21 +110,23 @@
                                 <div class="form-group">
                                     <div class="custom-control custom-switch mb-1">
                                         <input type="checkbox" class="custom-control-input" id="firstShot"
-                                            name="firstShot" v-model="filter.firstShot" disabled>
+                                            v-model="filter.firstShot">
                                         <label class="custom-control-label" for="firstShot">Первый снимок сделан
                                             до:</label>
                                     </div>
-                                    <input type="month" class="form-control form-control-sm" style="max-width: 220px;">
+                                    <input type="month" v-model="filter.firstShotDate"
+                                        class="form-control form-control-sm" style="max-width: 220px;">
                                 </div>
 
                                 <div class="form-group">
                                     <div class="custom-control custom-switch mb-1">
                                         <input type="checkbox" class="custom-control-input" id="lastShot"
-                                            name="lastShot" v-model="filter.lastShot" disabled>
+                                            v-model="filter.lastShot">
                                         <label class="custom-control-label" for="lastShot">Последний снимок
                                             сделан после:</label>
                                     </div>
-                                    <input type="month" class="form-control form-control-sm" style="max-width: 220px;">
+                                    <input type="month" v-model="filter.lastShotDate"
+                                        class="form-control form-control-sm" style="max-width: 220px;">
                                 </div>
 
                                 <div class="form-group">
@@ -150,7 +150,8 @@
                             style="width: 100%; position: absolute; height: 5px; opacity: 0.4;">
                         </div>
 
-                        <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                        <div role="progressbar"
+                            class="progress-bar progress-bar-striped progress-bar-animated bg-success"
                             v-bind:style="'width:' + 100 / domains.length * items.length +'%'">
                         </div>
 
