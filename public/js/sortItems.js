@@ -35,15 +35,16 @@ function sortByAlphabet(items) {
 
 function sortByAge(items) {
     items.sort((a, b) => {
-        if (a.links.length && b.links.length) {
-            let _a = a.links[0].timestamp;
-            let _b = b.links[0].timestamp;
-            if (_a < _b) return -1;
-            if (_a > _b) return 1;
-            return 0
-        } else {
-            return -1;
-        }
+        let _a = 0;
+        let _b = 0;
+
+        if (a.links.length && a.links[0].timestamp)
+            _a = a.links[0].timestamp;
+
+        if (b.links.length && b.links[0].timestamp)
+            _b = b.links[0].timestamp;
+
+        return _a - _b;
     });
     console.log('Sorted by age');
 }

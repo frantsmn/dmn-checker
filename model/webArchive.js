@@ -73,7 +73,7 @@ module.exports = async function (browser, result) {
             result.isError = true;
         });
 
-    await page.waitForSelector('#wm-graph-anchor', { timeout: 5000 })
+    await page.waitForSelector('#wm-graph-anchor', { timeout: 3000 })
         .then(() => {
             console.log(`>> Найдено содержимое для скриншота [${result.domain}] на web.archive.org`);
         })
