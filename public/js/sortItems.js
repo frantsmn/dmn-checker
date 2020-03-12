@@ -36,9 +36,11 @@ function sortByAlphabet(items) {
 function sortByAge(items) {
     items.sort((a, b) => {
         if (a.links.length && b.links.length) {
-            let _a = parseInt(a.links[0].timestamp);
-            let _b = parseInt(b.links[0].timestamp);
-            return _a - _b;
+            let _a = a.links[0].timestamp;
+            let _b = b.links[0].timestamp;
+            if (_a < _b) return -1;
+            if (_a > _b) return 1;
+            return 0
         } else {
             return -1;
         }
