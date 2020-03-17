@@ -38,10 +38,10 @@ function sortByAge(items) {
         let _a = 0;
         let _b = 0;
 
-        if (a.links.length && a.links[0].timestamp)
+        if (a.hasOwnProperty('links') && a.links.length && a.links[0].timestamp)
             _a = a.links[0].timestamp;
 
-        if (b.links.length && b.links[0].timestamp)
+        if (a.hasOwnProperty('links') && b.links.length && b.links[0].timestamp)
             _b = b.links[0].timestamp;
 
         return _a - _b;
@@ -51,8 +51,15 @@ function sortByAge(items) {
 
 function sortByDonors(items) {
     items.sort((a, b) => {
-        let _a = parseInt(a.donors.replace(/\s/g, ""));
-        let _b = parseInt(b.donors.replace(/\s/g, ""));
+        let _a = 0;
+        let _b = 0;
+
+        if (a.hasOwnProperty('donors'))
+            _a = parseInt(a.donors.replace(/\s/g, ""));
+
+        if (b.hasOwnProperty('donors'))
+            _b = parseInt(b.donors.replace(/\s/g, ""));
+
         return _b - _a;
     });
     console.log('Sorted by donors');

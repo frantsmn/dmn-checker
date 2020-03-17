@@ -17,6 +17,7 @@ new Vue({
             hideErrors: false
         },
         isBusy: false,
+        stopProcessAray: false,
         textareaText: '',
         domains: [],
         items: []
@@ -83,29 +84,44 @@ new Vue({
         onSubmit: async function () {
 
             const request = async data => {
-                let response = await fetch('/domain', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                });
+                try {
 
-                if (response.ok) {
-                    let obj = await response.json();
-                    return obj;
-                } else {
-                    const obj = {
-                        id: data.id,
-                        domain: data.domain,
-                        img: "",
-                        links: [],
-                        donors: "0",
-                        isError: true,
-                        errorText: "ERROR >> 503 - Ошибка сервера"
-                    };
-                    console.error(`\nОшибка HTTP: ${response.status}\n\nОтвет для ${data.domain}:\n`, obj, '\n\n');
-                    return obj;
+                    let response = await fetch('/domain', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    if (response.ok) {
+                        let obj = await response.json();
+                        return obj;
+                    } else {
+                        let errorResponse = data.map(item => {
+                            return {
+                                id: item.id,
+                                domain: item.domain,
+                                isError: true,
+                                errorText: "ERROR >> 503 - ошибка сервера!"
+                            };
+                        });
+                        return errorResponse;
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert(`Сервер недоступен!\n\nНет интернет-соединения, либо закончилось бесплатное время пользования хостингом`);
+                    let errorResponse = data.map(item => {
+                        return {
+                            id: item.id,
+                            domain: item.domain,
+                            isError: true,
+                            errorText: "ERROR >> Сервер недоступен!"
+                        };
+                    });
+                    this.stopProcessAray = true;
+                    return errorResponse;
                 }
             }
 
@@ -117,10 +133,14 @@ new Vue({
                 }
 
                 for (const group of groups) {
-                    console.log('Request for domains group: ', group);
-                    let response = await request({ domains: group });
-                    console.log('Response: ', response);
+                    console.log('<< Request: ', group);
+                    let response = await request(group);
+                    console.log('>> Response: ', response);
                     response.forEach(item => items.push(item));
+                    if (this.stopProcessAray) {
+                        alert("Процесс проверки доменов остановлен!");
+                        break;
+                    };
                 }
 
                 console.log('Done for all domains!!!');

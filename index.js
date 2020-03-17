@@ -14,10 +14,16 @@ const domainChecker = require('./model/domainChecker');
     app.listen(port, () => console.log('App listening on port ' + port));
 
     app.post('/domain', express.json({ type: 'application/json' }), async (req, res) => {
-
-        let data = await domainChecker(browser, (req.body.domains));
-        res.json(data);
-
+        try {
+            const data = await domainChecker(browser, (req.body));
+            res.json(data);
+        } catch (err) {
+            req.body.forEach(item => {
+                item.isError = true;
+                item.errorText = "ERROR >> 503 - Ошибка сервера";
+            });
+            res.status(503).json(req.body);
+            console.error('503 ERROR >> ', err);
+        }
     });
-
 })();
