@@ -92,10 +92,20 @@ new Vue({
                 });
 
                 if (response.ok) {
-                    let json = await response.json();
-                    return json;
+                    let obj = await response.json();
+                    return obj;
                 } else {
-                    alert("Ошибка HTTP: " + response.status);
+                    const obj = {
+                        id: data.id,
+                        domain: data.domain,
+                        img: "",
+                        links: [],
+                        donors: "0",
+                        isError: true,
+                        errorText: "ERROR >> 503 - Ошибка сервера"
+                    };
+                    console.error(`\nОшибка HTTP: ${response.status}\n\nОтвет для ${data.domain}:\n`, obj, '\n\n');
+                    return obj;
                 }
             }
 
