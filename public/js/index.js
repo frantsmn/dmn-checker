@@ -1,67 +1,86 @@
+import filterItems from "./filterItems.js";
 import sortItems from "../js/sortItems.js";
 
 Vue.component('card-component', {
     props: ['item'],
-    template: '#card-component',
+    template: '#card-component'
+});
+
+Vue.component('list-component', {
+    props: ['list', 'filter', 'sort'],
+    template: '#list-component',
+    computed: {
+        computedItems() {
+            //Вычисления делать только для АКТИВНОГО списка
+            if (!this.list.isActive) return this.list.items;
+
+            let computedItems = [...this.list.items];
+            computedItems = filterItems(computedItems, this.filter);
+            sortItems(computedItems, this.sort);
+            return computedItems;
+        }
+    }
+});
+
+Vue.component('list-pill-component', {
+    props: ['list', 'lists'],
+    template: '#list-pill-component',
+    computed: {
+        computedName() {
+            let computedName = `Результаты (${this.list.items.length || 0} из ${this.list.domains.length || '??'})`;
+            if (!computedName) return 'Результаты';
+            return computedName;
+        }
+    },
+    methods: {
+        deleteList(id) {
+            const listIndex = this.lists.findIndex(list => list.id === id);
+            this.lists.splice(listIndex, 1);
+        }
+    }
 });
 
 new Vue({
     el: '#app',
     data: {
-        sort: null,
-        filter: {
+        textareaText: '', //Поле с доменами на проверку
+        lists: [], //Сформированные списки результатов проверки
+
+        sort: null, //Настройки сортировки (сохраняются в localstorage, используются компонентом list)
+        filter: { //Настройки фильтра (сохраняются в localstorage, используются компонентом list)
             firstShot: false,
             firstShotDate: 0,
             lastShot: false,
             lastShotDate: 0,
             hideErrors: false
         },
-        isBusy: false,
-        stopProcessAray: false,
-        textareaText: '',
-        domains: [],
-        items: []
+
+        isBusy: false, //Необходимо для блокировки формы ввода
+        progress: 0, //Отображает текущий прогресс в прогрессбаре формы
+        stopProcessAray: false, //Принудительная остановка процесса (потеря связи с сервером)
     },
 
-    //Загрузка состояния инпутов сортировки и фильтров из localStorage
+    //Загрузка состояния из localStorage
     mounted() {
+        if (localStorage.textareaText) {
+            this.textareaText = localStorage.textareaText;
+        }
         if (localStorage.sort) {
             this.sort = localStorage.sort;
         }
         if (localStorage.filter) {
             this.filter = JSON.parse(localStorage.filter);
         }
-    },
-
-    computed: {
-        filteredItems() {
-            sortItems(this.items, this.sort);
-
-            let items = this.items;
-
-            if (this.filter.hideErrors)
-                items = this.items.filter(item => !item.isError);
-
-            if (this.filter.firstShot && this.filter.firstShotDate)
-                items = this.items.filter(item => {
-                    if (item.links.length) {
-                        return item.links[0].timestamp <= Date.parse(this.filter.firstShotDate)
-                    } return true;
-                });
-
-            if (this.filter.lastShot && this.filter.lastShotDate)
-                items = this.items.filter(item => {
-                    if (item.links.length) {
-                        return item.links[item.links.length - 1].timestamp >= Date.parse(this.filter.lastShotDate)
-                    } return true;
-                });
-
-            return items
+        if (localStorage.lists) {
+            this.lists = JSON.parse(localStorage.lists);
         }
     },
 
-    //Сохранение состояния инпутов сортировки и фильтров в localStorage
+    //Сохранение состояния в localStorage
     watch: {
+        textareaText(text) {
+            localStorage.textareaText = text;
+        },
         sort(sortType) {
             localStorage.sort = sortType;
         },
@@ -71,18 +90,24 @@ new Vue({
                 localStorage.setItem('filter', filterState);
             },
             deep: true
+        },
+        lists: {
+            handler: function (val, oldVal) {
+                let lists = JSON.stringify(val);
+                localStorage.setItem('lists', lists);
+            },
+            deep: true
         }
     },
 
     methods: {
-        onReset: function () {
-            this.isBusy = false;
-            this.textareaText = '';
-            this.domains = [];
-            this.items = [];
-        },
-        onSubmit: async function () {
+        updateProgress(amount, ready) { this.progress = 100 / amount * ready; },
 
+        switchTab(id) { this.lists.forEach(list => list.isActive = list.id === id ? true : false); },
+
+        onReset() { this.textareaText = ''; },
+
+        async onSubmit() {
             const request = async data => {
                 try {
 
@@ -111,7 +136,7 @@ new Vue({
 
                 } catch (err) {
                     console.error(err);
-                    alert(`Сервер недоступен!\n\nНет интернет-соединения, либо закончилось бесплатное время пользования хостингом`);
+                    alert(`Сервер недоступен!\n\nНет интернет-соединения, либо закончилось бесплатное время пользования хостингом.\n\nПроцесс проверки остановлен.`);
                     let errorResponse = data.map(item => {
                         return {
                             id: item.id,
@@ -124,7 +149,6 @@ new Vue({
                     return errorResponse;
                 }
             }
-
             const processArray = async (array, items) => {
                 let groups = [];
                 let copiedArray = array.slice();
@@ -133,28 +157,47 @@ new Vue({
                 }
 
                 for (const group of groups) {
+
                     console.log('<< Request: ', group);
                     let response = await request(group);
                     console.log('>> Response: ', response);
+
                     response.forEach(item => items.push(item));
+                    this.updateProgress(array.length, items.length);
+
                     if (this.stopProcessAray) {
-                        alert("Процесс проверки доменов остановлен!");
                         break;
                     };
                 }
 
                 console.log('Done for all domains!!!');
             }
-
             this.isBusy = true;
-            this.domains = this.textareaText
+
+            const list = {
+                id: +new Date,
+                name: 'Результаты',
+                isBusy: true,
+                isActive: true,
+                domains: [],
+                items: [],
+            };
+
+            this.lists.unshift(list);
+
+            //Сделать активной новую вкладку
+            this.switchTab(list.id);
+
+            list.domains = this.textareaText
                 .split('\n')
                 .map((item, index) => ({ id: index, domain: item }));
 
-            await processArray(this.domains, this.items, this.progress);
+            await processArray(list.domains, list.items, this.progress);
 
+            list.isBusy = false;
             setTimeout(() => {
                 this.isBusy = false;
+                this.updateProgress(0, 0);
             }, 600);
 
         }

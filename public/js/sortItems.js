@@ -1,5 +1,6 @@
 export default function sortItems(items, sortType) {
-    if (!items.length) return;
+    if (!items || !items.length) return;
+
     switch (sortType) {
 
         case 'alphabet':
@@ -38,10 +39,9 @@ function sortByAge(items) {
         let _a = 0;
         let _b = 0;
 
-        if (a.hasOwnProperty('links') && a.links.length && a.links[0].timestamp)
+        if (a.hasOwnProperty('links') && a.links && a.links.length && a.links[0].timestamp)
             _a = a.links[0].timestamp;
-
-        if (a.hasOwnProperty('links') && b.links.length && b.links[0].timestamp)
+        if (a.hasOwnProperty('links') && b.links && b.links.length && b.links[0].timestamp)
             _b = b.links[0].timestamp;
 
         return _a - _b;
