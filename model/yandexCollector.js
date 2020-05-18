@@ -6,7 +6,7 @@ module.exports = async function (browser, query) {
 	const yandexURL = 'https://yandex.by/search/?' + new URLSearchParams({ text: query, ncrnd: 9890 });
 	let result = {};
 
-	await page.goto(yandexURL, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '5000' })
+	await page.goto(yandexURL, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
 		.then(() => {
 			console.log(`>> Открыт yandex по запросу [${query}]`);
 		})
@@ -54,7 +54,7 @@ module.exports = async function (browser, query) {
 			item.title = await _title(item.url);
 		}
 
-		// console.log(`>> Выдача с yandex:`, data);
+		console.log(`>> Выдача с yandex:`, data);
 		result = data;
 
 	})
