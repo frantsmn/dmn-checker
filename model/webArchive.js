@@ -107,6 +107,7 @@ module.exports = async function (browser, result) {
 
     await page.goto('about:blank');
     await page.close();
+    
     console.log(`>> Вкладка закрыта [${result.domain}]\n\n`);
 
     return result;

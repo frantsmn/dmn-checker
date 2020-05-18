@@ -1,5 +1,6 @@
 import filterItems from "./filterItems.js";
-import sortItems from "../js/sortItems.js";
+import sortItems from "./sortItems.js";
+import fetchData from "./fetchData.js";
 
 Vue.component('card-component', {
     props: ['item'],
@@ -43,8 +44,10 @@ Vue.component('list-pill-component', {
 new Vue({
     el: '#app',
     data: {
-        textareaText: '', //Поле с доменами на проверку
+        textareaText: '', //Поле
         lists: [], //Сформированные списки результатов проверки
+
+        mode: 'domain', //domain or search
 
         sort: null, //Настройки сортировки (сохраняются в localstorage, используются компонентом list)
         filter: { //Настройки фильтра (сохраняются в localstorage, используются компонентом list)
@@ -107,51 +110,20 @@ new Vue({
 
         onReset() { this.textareaText = ''; },
 
-        async onSubmit() {
-            const request = async data => {
-                try {
-
-                    let response = await fetch('/domain', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data),
-                    });
-
-                    if (response.ok) {
-                        let obj = await response.json();
-                        return obj;
-                    } else {
-                        let errorResponse = data.map(item => {
-                            return {
-                                id: item.id,
-                                domain: item.domain,
-                                isError: true,
-                                errorText: "ERROR >> 503 - ошибка сервера!"
-                            };
-                        });
-                        return errorResponse;
-                    }
-
-                } catch (err) {
-                    console.error(err);
-                    alert(`Сервер недоступен!\n\nНет интернет-соединения, либо закончилось бесплатное время пользования хостингом.\n\nПроцесс проверки остановлен.`);
-                    let errorResponse = data.map(item => {
-                        return {
-                            id: item.id,
-                            domain: item.domain,
-                            isError: true,
-                            errorText: "ERROR >> Сервер недоступен!"
-                        };
-                    });
-                    this.stopProcessAray = true;
-                    return errorResponse;
-                }
+        onTextareaInput(e) {
+            let matchList = /\r|\n/.test(this.textareaText);
+            let matchDomain = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/igm.test(this.textareaText);
+            if (matchList || matchDomain) {
+                this.mode = 'domain';
+            } else {
+                this.mode = 'search';
             }
-            const processArray = async (array, items) => {
+        },
+
+        async onSubmit() {
+            const processDomains = async (domains, items) => {
                 let groups = [];
-                let copiedArray = array.slice();
+                let copiedArray = domains.slice();
                 while (copiedArray.length) {
                     groups.push(copiedArray.splice(0, 3));
                 }
@@ -159,21 +131,30 @@ new Vue({
                 for (const group of groups) {
 
                     console.log('<< Request: ', group);
-                    let response = await request(group);
+                    let response = await fetchData(group, 'domain');
                     console.log('>> Response: ', response);
 
-                    response.forEach(item => items.push(item));
-                    this.updateProgress(array.length, items.length);
-
-                    if (this.stopProcessAray) {
+                    if (!response) {
+                        console.log('Breaked!!! :(');
                         break;
-                    };
+                    } else {
+                        response.forEach(item => items.push(item));
+                        this.updateProgress(domains.length, items.length);
+                    }
                 }
 
-                console.log('Done for all domains!!!');
+                console.log('Done!!! :)');
             }
-            this.isBusy = true;
 
+            const processQuery = async (query, items) => {
+                this.updateProgress(2, 1);
+                let response = await fetchData({ query }, 'search');
+                response.forEach(item => items.push(item));
+                this.updateProgress(2, 2);
+                this.stopProcessAray = true;
+            }
+
+            this.isBusy = true;
             const list = {
                 id: +new Date,
                 name: 'Результаты',
@@ -182,18 +163,25 @@ new Vue({
                 domains: [],
                 items: [],
             };
-
+            //Добавить новую вкладку
             this.lists.unshift(list);
-
             //Сделать активной новую вкладку
             this.switchTab(list.id);
 
-            list.domains = this.textareaText
-                .split('\n')
-                .map((item, index) => ({ id: index, domain: item }));
+            switch (this.mode) {
+                case 'domain':
+                    list.domains = this.textareaText
+                        .split('\n')
+                        .map((item, index) => ({ id: index, domain: item }));
+                    await processDomains(list.domains, list.items);
+                    break;
 
-            await processArray(list.domains, list.items, this.progress);
+                case 'search':
+                    await processQuery(this.textareaText, list.items);
+                    break;
+            }
 
+            this.stopProcessAray = true;
             list.isBusy = false;
             setTimeout(() => {
                 this.isBusy = false;

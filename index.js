@@ -4,10 +4,11 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 const domainChecker = require('./model/domainChecker');
+const yandexCollector = require('./model/yandexCollector');
 
 (async () => {
     // headless: false,
-    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await puppeteer.launch({ headless: false, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
 
     app.use(express.static('public'));
 
@@ -26,4 +27,22 @@ const domainChecker = require('./model/domainChecker');
             console.error('503 ERROR >> ', err);
         }
     });
+
+    app.post('/search', express.json({ type: 'application/json' }), async (req, res) => {
+        try {
+        
+            const resArray = await yandexCollector(browser, (req.body.query));
+            const data = await domainChecker(browser, resArray, false);
+            res.json(data);
+            // console.log('RES!!!!!!!!!!!! => ', data);
+        } catch (err) {
+            res.status(503);
+            console.error('503 ERROR >> ', err);
+        }
+    });
+
+
 })();
+
+
+

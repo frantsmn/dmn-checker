@@ -28,167 +28,136 @@
 
     <main class="container mt-2" id="app">
 
-        <ul class="nav nav-tabs">
-            <li class="nav-item">
-                <a class="nav-link active" id="list-tab" data-toggle="tab" href="#list" role="tab"
-                    aria-selected="true">Проверка списка</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="query-tab" data-toggle="tab" href="#query" role="tab"
-                    aria-selected="false">Проверка по запросу</a>
-            </li>
-        </ul>
+        <!-- ФОРМА -->
+        <div class="card border-secondary rounded-2">
 
-        <div class="tab-content">
-            <div class="tab-pane show active" id="list">
+            <div class="row card-body">
 
-                <div class="card border-secondary border-top-0 rounded-0">
-
-                    <div class="row card-body">
-
-                        <!-- Форма -->
-                        <div class="col">
-                            <form @submit.prevent="onSubmit" class="col mb-3">
-                                <div class="form-group">
-                                    <label class="lead" for="domains">Домены на проверку</label>
-                                    <textarea class="form-control" name="domains" id="domains" rows="7" cols="3"
-                                        placeholder="example.com" v-model="textareaText"
-                                        v-bind:disabled="isBusy"></textarea>
-                                </div>
-
-                                <input class="btn btn-primary mr-2 mb-3" type="submit"
-                                    v-bind:disabled="isBusy || !textareaText.length" value="Проверить">
-                                <input class="btn btn-outline-danger mb-3" type="reset" @click="onReset"
-                                    v-bind:disabled="isBusy || !textareaText.length" value="Очистить поле">
-                            </form>
+                <!-- Форма -->
+                <div class="col">
+                    <form @submit.prevent="onSubmit" class="col mb-3">
+                        <div class="form-group">
+                            <label class="lead" for="domains">Домены или поисковый запрос</label>
+                            <textarea class="form-control" name="domains" id="domains" rows="7" cols="3"
+                                      placeholder="example.com" v-model="textareaText" @input="onTextareaInput"
+                                      v-bind:disabled="isBusy"></textarea>
                         </div>
 
-                        <!-- Сортировка -->
-                        <div class="col-xs-12 col-md">
-                            <div class="col border border-secondary rounded p-3 mb-3">
-                                <div class="form-group">
-                                    <label class="lead">Сортировка</label>
-                                </div>
+                        <input class="btn btn-primary mr-2 mb-3" type="submit"
+                               v-bind:disabled="isBusy || !textareaText.length" value="Проверить">
+                        <input class="btn btn-outline-danger mb-3" type="reset" @click="onReset"
+                               v-bind:disabled="isBusy || !textareaText.length" value="Очистить поле">
+                    </form>
+                </div>
 
-                                <div class="form-group">
-                                    <div class="custom-control custom-radio mb-1">
-                                        <input v-model="sort" id="sort-by-alphabet" class="custom-control-input"
-                                            type="radio" name="sort" value="alphabet">
-                                        <label class="custom-control-label" for="sort-by-alphabet">
-                                            по алфавиту
-                                        </label>
-                                    </div>
+                <!-- Сортировка -->
+                <div class="col-xs-12 col-md">
+                    <div class="col border border-secondary rounded p-3 mb-3">
+                        <div class="form-group">
+                            <label class="lead">Сортировка</label>
+                        </div>
 
-                                    <div class="custom-control custom-radio mb-1">
-                                        <input v-model="sort" id="sort-by-age" class="custom-control-input" type="radio"
-                                            name="sort" value="age">
-                                        <label class="custom-control-label" for="sort-by-age">
-                                            по возрасту
-                                        </label>
-                                    </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-radio mb-1">
+                                <input v-model="sort" id="sort-by-alphabet" class="custom-control-input" type="radio"
+                                       name="sort" value="alphabet">
+                                <label class="custom-control-label" for="sort-by-alphabet">
+                                    по алфавиту
+                                </label>
+                            </div>
 
-                                    <div class="custom-control custom-radio">
-                                        <input v-model="sort" id="sort-by-donors" class="custom-control-input"
-                                            type="radio" name="sort" value="donors">
-                                        <label class="custom-control-label" for="sort-by-donors">
-                                            по количеству доноров
-                                        </label>
-                                    </div>
-                                </div>
+                            <div class="custom-control custom-radio mb-1">
+                                <input v-model="sort" id="sort-by-age" class="custom-control-input" type="radio"
+                                       name="sort" value="age">
+                                <label class="custom-control-label" for="sort-by-age">
+                                    по возрасту
+                                </label>
+                            </div>
 
-                                <button class="btn btn-sm btn-outline-info" @click="sort = null;">Сбросить</button>
+                            <div class="custom-control custom-radio">
+                                <input v-model="sort" id="sort-by-donors" class="custom-control-input" type="radio"
+                                       name="sort" value="donors">
+                                <label class="custom-control-label" for="sort-by-donors">
+                                    по количеству доноров
+                                </label>
                             </div>
                         </div>
 
-                        <!-- Фильтр -->
-                        <div class="col-xs-12 col-lg">
-                            <div class="col-12 border border-secondary p-3 rounded">
+                        <button class="btn btn-sm btn-outline-info" @click="sort = null;">Сбросить</button>
+                    </div>
+                </div>
 
-                                <div class="form-group">
-                                    <label class="lead">Фильтры</label>
-                                </div>
+                <!-- Фильтр -->
+                <div class="col-xs-12 col-lg">
+                    <div class="col-12 border border-secondary p-3 rounded">
 
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="firstShot"
-                                            v-model="filter.firstShot">
-                                        <label class="custom-control-label" for="firstShot">Первый снимок сделан
-                                            до:</label>
-                                    </div>
-                                    <input type="month" v-model="filter.firstShotDate"
-                                        class="form-control form-control-sm" style="max-width: 220px;">
-                                </div>
+                        <div class="form-group">
+                            <label class="lead">Фильтры</label>
+                        </div>
 
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="lastShot"
-                                            v-model="filter.lastShot">
-                                        <label class="custom-control-label" for="lastShot">Последний снимок
-                                            сделан после:</label>
-                                    </div>
-                                    <input type="month" v-model="filter.lastShotDate"
-                                        class="form-control form-control-sm" style="max-width: 220px;">
-                                </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-switch mb-1">
+                                <input type="checkbox" class="custom-control-input" id="firstShot"
+                                       v-model="filter.firstShot">
+                                <label class="custom-control-label" for="firstShot">Первый снимок сделан
+                                    до:</label>
+                            </div>
+                            <input type="month" v-model="filter.firstShotDate" class="form-control form-control-sm"
+                                   style="max-width: 220px;">
+                        </div>
 
-                                <hr class="border-secondary ml-n3 mr-n3 mt-4 mb-4">
+                        <div class="form-group">
+                            <div class="custom-control custom-switch mb-1">
+                                <input type="checkbox" class="custom-control-input" id="lastShot"
+                                       v-model="filter.lastShot">
+                                <label class="custom-control-label" for="lastShot">Последний снимок
+                                    сделан после:</label>
+                            </div>
+                            <input type="month" v-model="filter.lastShotDate" class="form-control form-control-sm"
+                                   style="max-width: 220px;">
+                        </div>
 
-                                <div class="form-group mb-2">
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="hideErrors"
-                                            name="hideErrors" v-model="filter.hideErrors">
-                                        <label class="custom-control-label" for="hideErrors">Скрывать результаты с
-                                            ошибками</label>
-                                    </div>
-                                </div>
+                        <hr class="border-secondary ml-n3 mr-n3 mt-4 mb-4">
 
+                        <div class="form-group mb-2">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="hideErrors" name="hideErrors"
+                                       v-model="filter.hideErrors">
+                                <label class="custom-control-label" for="hideErrors">Скрывать результаты с
+                                    ошибками</label>
                             </div>
                         </div>
 
                     </div>
-
-                    <div v-if="isBusy" class="progress"
-                        style="height: 5px; border-radius: 0; position: absolute; bottom: -1px; left: -1px; width: 100%;">
-
-                        <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
-                            style="width: 100%; position: absolute; height: 5px; opacity: 0.4;">
-                        </div>
-
-                        <div role="progressbar"
-                            class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                            v-bind:style="'width:'+progress+'%'">
-                        </div>
-
-                    </div>
-
                 </div>
 
             </div>
 
-            <div class="tab-pane show" id="query">
+            <div v-if="isBusy" class="progress"
+                 style="height: 5px; border-radius: 0; position: absolute; bottom: -1px; left: -1px; width: 100%;">
 
-                <div class="card border-secondary border-top-0 rounded-0">
-                    <div class="card-body">
-                        Все еще в разработке...
-                    </div>
-                    <div class="card-footer">
-                        ⏳
-                    </div>
+                <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
+                     style="width: 100%; position: absolute; height: 5px; opacity: 0.4;">
+                </div>
+
+                <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                     v-bind:style="'width:'+progress+'%'">
                 </div>
 
             </div>
+
         </div>
-
 
         <!-- РЕЗУЛЬТАТЫ -->
         <div class="mt-5" id="container">
 
-            <!-- Pills -->
+            <!-- Вкладки - Pills -->
             <ul class="nav nav-pills">
                 <list-pill-component v-for="list in lists" :list="list" :lists="lists" :key="list.id"
-                    v-on:switchtab="switchTab(list.id)"></list-pill-component>
+                                     v-on:switchtab="switchTab(list.id)"></list-pill-component>
             </ul>
 
-            <!-- Tabs -->
+            <!-- Контент - Tabs -->
             <div class="tab-content mt-3">
                 <list-component v-for="list in lists" :list="list" :filter="filter" :sort="sort" :key="list.id">
                 </list-component>
@@ -231,6 +200,7 @@
                     </div>
                     <div class="col-12 col-lg-4">
                         <p class="pt-1 pb-1 m-0">Доноры <a v-bind:href="'https://www.linkpad.ru/?search=' + item.domain" target="_blank">{{ item.donors }}</a></p>
+                        <p class="pt-1 pb-1 m-0" v-if="item.title">Тайтл <a v-bind:href="item.url" target="_blank">{{ item.title }}</a></p>
                     </div>
                 </div>
 
@@ -266,14 +236,14 @@
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+            crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-        crossorigin="anonymous"></script>
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-        crossorigin="anonymous"></script>
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
 
 </body>
 
