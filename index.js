@@ -30,7 +30,6 @@ const yandexCollector = require('./model/yandexCollector');
 
     app.post('/search', express.json({ type: 'application/json' }), async (req, res) => {
         try {
-
             const resArray = await yandexCollector(browser, (req.body.query));
             const data = await domainChecker(browser, resArray, false);
             res.json(data);

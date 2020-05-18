@@ -2,10 +2,11 @@ const _title = require('./title');
 
 module.exports = async function (browser, query) {
 	const page = await browser.newPage();
+
 	const yandexURL = 'https://yandex.by/search/?' + new URLSearchParams({ text: query, ncrnd: 9890 });
 	let result = {};
 
-	await page.goto(yandexURL, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '3000' })
+	await page.goto(yandexURL, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '5000' })
 		.then(() => {
 			console.log(`>> Открыт yandex по запросу [${query}]`);
 		})
@@ -16,7 +17,16 @@ module.exports = async function (browser, query) {
 			result.isError = true;
 		});
 
-	await page.waitForSelector('#search-result .serp-item', { timeout: 3000 });
+	await page.waitForSelector('#search-result .serp-item', { timeout: 5000 })
+		.then(() => {
+			console.log(`>> Найдены результаты выдачи`);
+		})
+		.catch(error => {
+			const errorMessage = `ERROR >> Не удалось найти результаты выдачи\n${error}\n\n`;
+			console.error(errorMessage);
+			result.errorText += errorMessage;
+			result.isError = true;
+		});
 
 	await page.evaluate(() => {
 
