@@ -14,7 +14,8 @@ export default async function processDomains(items, text = undefined, progress) 
 		groups.push(itemsCopy.splice(0, 3));
 	}
 
-	for (const group of groups) {
+	for (let [key, group] of Object.entries(groups)) {
+		progress.value = 100 / (groups.length - 1) * key;
 		progress.text = `Получение данных для доменов: `;
 		group.forEach(domain => {
 			progress.text += domain.domain + ', ';
@@ -38,6 +39,7 @@ export default async function processDomains(items, text = undefined, progress) 
 		}
 
 	}
+	progress.value = 0;
 	progress.text = '';
 	console.log('Done!!!');
 	console.groupEnd();

@@ -1,4 +1,4 @@
-const _title = require('./title');
+const _title = require('./titleCollector');
 
 module.exports = async function (browser, query) {
 	const page = await browser.newPage();
@@ -50,10 +50,9 @@ module.exports = async function (browser, query) {
 
 	}).then(async data => {
 
-		for await (item of data) {
-			item.id = +new Date();
-			item.title = await _title(item.url);
-		}
+		data.forEach((item, index) => {
+			item.id = index;
+		});
 
 		console.log(`>> Выдача с yandex:`, data);
 		result = data;

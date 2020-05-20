@@ -5,6 +5,7 @@ const port = process.env.PORT || 8080;
 
 const domainChecker = require('./model/domainChecker');
 const yandexCollector = require('./model/yandexCollector');
+const titleCollector = require('./model/titleCollector');
 
 (async () => {
     // headless: false,
@@ -39,6 +40,15 @@ const yandexCollector = require('./model/yandexCollector');
         }
     });
 
+    app.post('/title', express.json({ type: 'application/json' }), async (req, res) => {
+        try {
+            const data = await titleCollector(browser, (req.body));
+            res.json(data);
+        } catch (err) {
+            res.status(503);
+            console.error('503 ERROR >> ', err);
+        }
+    });
 
 })();
 

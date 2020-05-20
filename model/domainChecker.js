@@ -11,7 +11,7 @@ async function collectInfo(browser, obj) {
         errorText: ''
     }, obj);
 
-    if (/^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/igm.test(obj.domain) === false) {
+    if (/^(?!:\/\/)([а-яА-Яa-zA-Z0-9-_]+\.)*[а-яА-Яa-zA-Z0-9][а-яА-Яa-zA-Z0-9-_]+\.[а-яА-Яa-zA-Z]{2,11}?$/igm.test(obj.domain) === false) {
         result.errorText = `«${obj.domain}» не является доменным именем`;
         result.isError = true;
         return result;

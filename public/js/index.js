@@ -3,6 +3,7 @@ import sortItems from "./utils/sortItems.js";
 
 import processDomains from "./model/processDomains.js";
 import processQueryYandex from "./model/processQueryYandex.js";
+import processTitles from "./model/processTitles.js";
 
 Vue.component('card-component', {
     props: ['item'],
@@ -65,8 +66,7 @@ new Vue({
             value: 0,
             text: '',
             visible: false
-        }, //Отображает текущий прогресс в прогрессбаре формы
-        stopProcessAray: false, //Принудительная остановка процесса (потеря связи с сервером)
+        } //Отображает текущий прогресс в прогрессбаре формы
     },
 
     //Загрузка состояния из localStorage
@@ -147,17 +147,20 @@ new Vue({
 
                 case 'search':
                     await processQueryYandex(list.items, this.textareaText, this.progress);
+                    // await Promise.all([
+                    //     () => processTitles(list.items, this.progress),
+                    //     () => processDomains(list.items, undefined, this.progress)
+                    // ].map(async func => await func()));
+                    await processTitles(list.items, this.progress);
                     await processDomains(list.items, undefined, this.progress);
+                    console.log('FINISH!');
+
                     break;
             }
 
-            this.stopProcessAray = true;
             list.isBusy = false;
-            setTimeout(() => {
-                this.blockForm = false;
-                this.progress.visible = false;
-            }, 600);
-
+            this.progress.visible = false;
+            this.blockForm = false;
         }
     }
 });
