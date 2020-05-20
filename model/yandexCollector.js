@@ -33,16 +33,17 @@ module.exports = async function (browser, query) {
 		let data = [];
 		document.querySelectorAll('.serp-item:not([data-fast-wzrd])').forEach(position => {
 			let el = position.querySelector('h2 > .link');
-			let text = el.innerText;
-			let url = el.href;
-			let domain = new URL(url).host;
-			let isRedirect = false;
-			if (domain === 'yabs.yandex.by') {
-				domain = position.querySelector('.organic__subtitle > div.path > a:first-child').innerText;
-				isRedirect = true;
+			if (el) {
+				let text = el.innerText;
+				let url = el.href;
+				let domain = new URL(url).host;
+				let isRedirect = false;
+				if (domain === 'yabs.yandex.by') {
+					domain = position.querySelector('.organic__subtitle > div.path > a:first-child').innerText;
+					isRedirect = true;
+				}
+				data.push({ text, url, domain, isRedirect });
 			}
-
-			data.push({ text, url, domain, isRedirect });
 		});
 
 		return data;

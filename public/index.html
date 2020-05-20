@@ -39,14 +39,15 @@
                         <div class="form-group">
                             <label class="lead" for="domains">Домены или поисковый запрос</label>
                             <textarea class="form-control" name="domains" id="domains" rows="7" cols="3"
-                                      placeholder="example.com" v-model="textareaText" @input="onTextareaInput"
-                                      v-bind:disabled="isBusy"></textarea>
+                                      placeholder="example.com" v-model="textareaText" @input="checkMode"
+                                      v-bind:disabled="blockForm"></textarea>
                         </div>
 
                         <input class="btn btn-primary mr-2 mb-3" type="submit"
-                               v-bind:disabled="isBusy || !textareaText.length" value="Проверить">
-                        <input class="btn btn-outline-danger mb-3" type="reset" @click="onReset"
-                               v-bind:disabled="isBusy || !textareaText.length" value="Очистить поле">
+                               v-bind:disabled="blockForm || !textareaText.length"
+                               :value="mode === 'search' ? 'Проверить запрос': 'Проверить домены'">
+                        <input class="btn btn-outline-danger mb-3" type="reset" @click="this.textareaText = ''"
+                               v-bind:disabled="blockForm || !textareaText.length" value="Очистить поле">
                     </form>
                 </div>
 
@@ -132,8 +133,7 @@
                 </div>
 
             </div>
-
-            <div v-if="isBusy" class="progress"
+            <div v-if="progress.visible" :data-text='progress.text' class="progress"
                  style="height: 5px; border-radius: 0; position: absolute; bottom: -1px; left: -1px; width: 100%;">
 
                 <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
@@ -141,7 +141,7 @@
                 </div>
 
                 <div role="progressbar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                     v-bind:style="'width:'+progress+'%'">
+                     :style="'width:'+progress.value+'%'">
                 </div>
 
             </div>
@@ -172,38 +172,30 @@
 
             <div class="card-body p-3">
                 <h4 class="m-0 p-0">{{ item.domain }}</h4>
-                <!-- <button type="button" class="close" data-dismiss="alert">&times;</button> -->
             </div>
 
-            <div v-if="item.isError">
-
-                <div class="card-body text-danger">
-                    {{ item.errorText }}
-                </div>
-
+            <div v-if="item.isError" class="card-body text-danger pb-2">
+                {{ item.errorText }}
             </div>
-            <div v-else>
-                
-                <div class="card__image-wrapper ml-3 mr-3 rounded">
-                    <img class="card__image" v-bind:src="'data:image/png;base64,' + item.img">
-                </div>
 
-                <div class="card-body p-3 row">
-                    <div class="col-12 col-lg-4">
-                        <p class="pt-1 pb-1 m-0">Перейти на <a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></p>
-                        <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'http://web.archive.org/web/*/' + item.domain" target="_blank">web.archive.org</a></p>
-                    </div>
-                    <div v-if="item.links.length" class="col-12 col-md-4">
-                        <p class="pt-1 pb-1 m-0" v-if="item.links[0]">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
-                        <p class="pt-1 pb-1 m-0" v-if="item.links[1]">Последний снимок <a v-bind:href="item.links[1].href" target="_blank">{{ item.links[1].innerText }}</a></p>
-                        <p class="pt-1 pb-1 m-0" v-else="item.links[0]">Последний снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
-                    </div>
-                    <div class="col-12 col-lg-4">
-                        <p class="pt-1 pb-1 m-0">Доноры <a v-bind:href="'https://www.linkpad.ru/?search=' + item.domain" target="_blank">{{ item.donors }}</a></p>
-                        <p class="pt-1 pb-1 m-0" v-if="item.title">Тайтл <a v-bind:href="item.url" target="_blank">{{ item.title }}</a></p>
-                    </div>
-                </div>
+            <div v-if="item.img && item.img.length" class="card__image-wrapper ml-3 mr-3 rounded">
+                <img class="card__image" v-bind:src="'data:image/png;base64,' + item.img">
+            </div>
 
+            <div class="card-body p-3 row">
+                <div class="col-12 col-lg-4">
+                    <p class="pt-1 pb-1 m-0">Перейти на <a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></p>
+                    <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'http://web.archive.org/web/*/' + item.domain" target="_blank">web.archive.org</a></p>
+                </div>
+                <div v-if="item.links && item.links.length" class="col-12 col-md-4">
+                    <p class="pt-1 pb-1 m-0" v-if="item.links[0]">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
+                    <p class="pt-1 pb-1 m-0" v-if="item.links[1]">Последний снимок <a v-bind:href="item.links[1].href" target="_blank">{{ item.links[1].innerText }}</a></p>
+                    <p class="pt-1 pb-1 m-0" v-else="item.links[0]">Последний снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <p v-if="item.donors" class="pt-1 pb-1 m-0">Доноры <a v-bind:href="'https://www.linkpad.ru/?search=' + item.domain" target="_blank">{{ item.donors }}</a></p>
+                    <p class="pt-1 pb-1 m-0" v-if="item.title">Тайтл <a v-bind:href="item.url" target="_blank">{{ item.title }}</a></p>
+                </div>
             </div>
 
         </div>

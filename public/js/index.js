@@ -1,6 +1,8 @@
-import filterItems from "./filterItems.js";
-import sortItems from "./sortItems.js";
-import fetchData from "./fetchData.js";
+import filterItems from "./utils/filterItems.js";
+import sortItems from "./utils/sortItems.js";
+
+import processDomains from "./model/processDomains.js";
+import processQueryYandex from "./model/processQueryYandex.js";
 
 Vue.component('card-component', {
     props: ['item'],
@@ -28,7 +30,7 @@ Vue.component('list-pill-component', {
     template: '#list-pill-component',
     computed: {
         computedName() {
-            let computedName = `Результаты (${this.list.items.length || 0} из ${this.list.domains.length || '??'})`;
+            let computedName = `Результаты`;
             if (!computedName) return 'Результаты';
             return computedName;
         }
@@ -44,10 +46,10 @@ Vue.component('list-pill-component', {
 new Vue({
     el: '#app',
     data: {
+        mode: 'search', //Режим работы [domain или search]
+
         textareaText: '', //Поле
         lists: [], //Сформированные списки результатов проверки
-
-        mode: 'domain', //domain or search
 
         sort: null, //Настройки сортировки (сохраняются в localstorage, используются компонентом list)
         filter: { //Настройки фильтра (сохраняются в localstorage, используются компонентом list)
@@ -58,8 +60,12 @@ new Vue({
             hideErrors: false
         },
 
-        isBusy: false, //Необходимо для блокировки формы ввода
-        progress: 0, //Отображает текущий прогресс в прогрессбаре формы
+        blockForm: false, //Необходимо для блокировки формы ввода
+        progress: {
+            value: 0,
+            text: '',
+            visible: false
+        }, //Отображает текущий прогресс в прогрессбаре формы
         stopProcessAray: false, //Принудительная остановка процесса (потеря связи с сервером)
     },
 
@@ -77,6 +83,7 @@ new Vue({
         if (localStorage.lists) {
             this.lists = JSON.parse(localStorage.lists);
         }
+        this.checkMode();
     },
 
     //Сохранение состояния в localStorage
@@ -104,13 +111,9 @@ new Vue({
     },
 
     methods: {
-        updateProgress(amount, ready) { this.progress = 100 / amount * ready; },
-
+        updateProgress(amount, ready) { this.progress.value = 100 / amount * ready; },
         switchTab(id) { this.lists.forEach(list => list.isActive = list.id === id ? true : false); },
-
-        onReset() { this.textareaText = ''; },
-
-        onTextareaInput(e) {
+        checkMode(e) {
             let matchList = /\r|\n/.test(this.textareaText);
             let matchDomain = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/igm.test(this.textareaText);
             if (matchList || matchDomain) {
@@ -121,40 +124,9 @@ new Vue({
         },
 
         async onSubmit() {
-            const processDomains = async (domains, items) => {
-                let groups = [];
-                let copiedArray = domains.slice();
-                while (copiedArray.length) {
-                    groups.push(copiedArray.splice(0, 3));
-                }
+            this.blockForm = true;
+            this.progress.visible = true;
 
-                for (const group of groups) {
-
-                    console.log('<< Request: ', group);
-                    let response = await fetchData(group, 'domain');
-                    console.log('>> Response: ', response);
-
-                    if (!response) {
-                        console.log('Breaked!!! :(');
-                        break;
-                    } else {
-                        response.forEach(item => items.push(item));
-                        this.updateProgress(domains.length, items.length);
-                    }
-                }
-
-                console.log('Done!!! :)');
-            }
-
-            const processQuery = async (query, items) => {
-                this.updateProgress(2, 1);
-                let response = await fetchData({ query }, 'search');
-                response.forEach(item => items.push(item));
-                this.updateProgress(2, 2);
-                this.stopProcessAray = true;
-            }
-
-            this.isBusy = true;
             const list = {
                 id: +new Date,
                 name: 'Результаты',
@@ -170,22 +142,20 @@ new Vue({
 
             switch (this.mode) {
                 case 'domain':
-                    list.domains = this.textareaText
-                        .split('\n')
-                        .map((item, index) => ({ id: index, domain: item }));
-                    await processDomains(list.domains, list.items);
+                    await processDomains(list.items, this.textareaText, this.progress);
                     break;
 
                 case 'search':
-                    await processQuery(this.textareaText, list.items);
+                    await processQueryYandex(list.items, this.textareaText, this.progress);
+                    await processDomains(list.items, undefined, this.progress);
                     break;
             }
 
             this.stopProcessAray = true;
             list.isBusy = false;
             setTimeout(() => {
-                this.isBusy = false;
-                this.updateProgress(0, 0);
+                this.blockForm = false;
+                this.progress.visible = false;
             }, 600);
 
         }
