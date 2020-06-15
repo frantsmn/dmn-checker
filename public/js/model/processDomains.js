@@ -28,8 +28,7 @@ export default async function processDomains(items, text = undefined, progress) 
 		console.log('>> Response: ', response);
 
 		if (!response) {
-			console.log('Break!!!');
-			break;
+			console.error(`Данные о доменах ${progress.text} получить не удалось...\nОшибка сервера!`);
 		} else {
 			response.forEach(responseItem => {
 				let listItemIndex = items.findIndex(item => item.id === responseItem.id);
