@@ -171,12 +171,10 @@
         <div v-bind:class="[item.isError ? 'border-danger' : 'border-success', 'card mb-3']">
 
             <div class="card-body p-3">
-                <h4 class="m-0 p-0">{{ item.domain }}</h4>
+                <h4 class="m-0 p-0"><a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></h4>
             </div>
 
-            <div v-if="item.isError" class="card-body text-danger pb-2">
-                {{ item.errorText }}
-            </div>
+            <small v-if="item.isError" class="card-body text-danger py-0">{{ item.errorText }}</small>
 
             <div v-if="item.img && item.img.length" class="card__image-wrapper ml-3 mr-3 rounded">
                 <img class="card__image" v-bind:src="'data:image/png;base64,' + item.img">
@@ -184,8 +182,8 @@
 
             <div class="card-body p-3 row">
                 <div class="col-12 col-lg-4">
-                    <p class="pt-1 pb-1 m-0">Перейти на <a v-bind:href="'https://' + item.domain" target="_blank">{{ item.domain }}</a></p>
                     <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'http://web.archive.org/web/*/' + item.domain" target="_blank">web.archive.org</a></p>
+                    <p class="pt-1 pb-1 m-0">Подробно на <a v-bind:href="'https://www.linkpad.ru/?search=' + item.domain" target="_blank">linkpad.ru</a></p>
                 </div>
                 <div v-if="item.links && item.links.length" class="col-12 col-md-4">
                     <p class="pt-1 pb-1 m-0" v-if="item.links[0]">Первый снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
@@ -193,7 +191,6 @@
                     <p class="pt-1 pb-1 m-0" v-else="item.links[0]">Последний снимок <a v-bind:href="item.links[0].href" target="_blank">{{ item.links[0].innerText }}</a></p>
                 </div>
                 <div class="col-12 col-lg-4">
-                    <p v-if="item.donors" class="pt-1 pb-1 m-0">Доноры <a v-bind:href="'https://www.linkpad.ru/?search=' + item.domain" target="_blank">{{ item.donors }}</a></p>
                     <p class="pt-1 pb-1 m-0" v-if="item.title">Тайтл <a v-bind:href="item.url" target="_blank">{{ item.title }}</a></p>
                 </div>
             </div>

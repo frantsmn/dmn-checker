@@ -16,7 +16,8 @@ Vue.component('list-component', {
     computed: {
         computedItems() {
             //Вычисления делать только для АКТИВНОГО списка
-            if (!this.list.isActive) return this.list.items;
+            if (!this.list.isActive)
+                return this.list.items;
 
             let computedItems = [...this.list.items];
             computedItems = filterItems(computedItems, this.filter);
@@ -31,9 +32,7 @@ Vue.component('list-pill-component', {
     template: '#list-pill-component',
     computed: {
         computedName() {
-            let computedName = `Результаты`;
-            if (!computedName) return 'Результаты';
-            return computedName;
+            return `Результаты`;
         }
     },
     methods: {

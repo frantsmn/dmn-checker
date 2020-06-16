@@ -1,15 +1,16 @@
 const grabFromWebArchive = require('./webArchive.js');
-const grabFromLinkpad = require('./linkpad.js');
+// const grabFromLinkpad = require('./linkpad.js');
 
 async function collectInfo(browser, obj) {
 
-    let result = Object.assign({
+    let result = {
         img: '',
         links: [],
         donors: '',
         isError: false,
-        errorText: ''
-    }, obj);
+        errorText: '',
+        ...obj
+    };
 
     if (/^(?!:\/\/)([а-яА-Яa-zA-Z0-9-_]+\.)*[а-яА-Яa-zA-Z0-9][а-яА-Яa-zA-Z0-9-_]+\.[а-яА-Яa-zA-Z]{2,11}?$/igm.test(obj.domain) === false) {
         result.errorText = `«${obj.domain}» не является доменным именем`;
@@ -17,27 +18,28 @@ async function collectInfo(browser, obj) {
         return result;
     }
 
-    // ждем когда все промисы будут выполнены
+    // Ждем когда все промисы будут выполнены
     await Promise.all([
         grabFromWebArchive(browser, result),
-        grabFromLinkpad(browser, result)
+        // grabFromLinkpad(browser, result)
     ]);
 
     console.log(`Для домена: ${obj.domain} объект собран!\n=============\n\n`);
     return result;
+
 }
 
 module.exports = async function (browser, domains, limit) {
 
-    let array = [];
-    let result = [];
+    let array = [],
+        result = [];
 
     if (limit === false)
         array = domains;
     else
         array = domains.length > 3 ? domains.slice(0, 3) : domains;
 
-    // делаем "map" массива в промисы
+    // Делаем "map" массива в промисы
     const promises = array.map(
         async domain => {
             await collectInfo(browser, domain)

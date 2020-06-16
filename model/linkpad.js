@@ -6,6 +6,7 @@ module.exports = async function (browser, result) {
     } catch (error) {
         const errorMessage = `ERROR >> Не удалось открыть вкладку для linkpad.ru [${result.domain}]\n${error}\n\n`;
         console.error(errorMessage);
+        result.donors = 'ошибка';
         result.errorText += errorMessage;
         return result;
     }
@@ -17,22 +18,24 @@ module.exports = async function (browser, result) {
         .catch(error => {
             const errorMessage = `ERROR >> Не удалось перейти на страницу linkpad.ru [${result.domain}]\n${error}\n\n`;
             console.error(errorMessage);
+            result.donors = 'ошибка';
             result.errorText += errorMessage;
         });
 
-    await page.waitForSelector('#a4', { timeout: 5000 })
+    await page.waitForSelector('#a4', { timeout: 3000 })
         .then(() => {
             console.log(`>> Найдены данные на linkpad.ru [${result.domain}]`);
         })
         .catch(error => {
-            const errorMessage = `ERROR >> Не удалось найти данные на linkpad.ru [${result.domain}]\nВозможно страница с информацией о таком домене отсутствует, либо ресурс недоступен\n${error}\n\n`
+            const errorMessage = `ERROR >> Не удалось найти данные на linkpad.ru [${result.domain}]\n${error}\n\n`
             console.error(errorMessage);
+            result.donors = 'ошибка';
             result.errorText += errorMessage;
         });
 
-    await page.evaluate(() => {
-        return document.querySelector('#a4').innerText;
-    })
+    await page.evaluate(
+        () => document.querySelector('#a4') ? document.querySelector('#a4').innerText : 'не найдено'
+    )
         .then(donors => {
             console.log(`>> Данные с linkpad.ru прочитаны [${result.domain}]`);
             result.donors = donors;
@@ -40,6 +43,7 @@ module.exports = async function (browser, result) {
         .catch(error => {
             const errorMessage = `ERROR >> Не удалось прочесть данные со страницы linkpad.ru [${result.domain}]\n\n${error}\n\n`
             console.error(errorMessage);
+            result.donors = 'ошибка';
             result.errorText += errorMessage;
         });
 

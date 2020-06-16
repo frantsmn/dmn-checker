@@ -78,7 +78,7 @@ module.exports = async function (browser, result) {
             console.log(`>> Найдено содержимое для скриншота [${result.domain}] на web.archive.org`);
         })
         .catch(error => {
-            const errorMessage = `ERROR >> Не удалось найти содержимое для скриншота [${result.domain}] на web.archive.org\nВозможно страница с информацией о таком домене отсутствует, либо ресурс недоступен\n${error}\n\n`
+            const errorMessage = `ERROR >> Не удалось найти содержимое для скриншота [${result.domain}] на web.archive.org\nCтраница с информацией о домене отсутствует, либо ресурс недоступен\n${error}\n\n`
             console.error(errorMessage);
             result.errorText += errorMessage;
             result.isError = true;
