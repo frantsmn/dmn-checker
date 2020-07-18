@@ -1,10 +1,33 @@
-const _title = require('./titleCollector');
+// const _title = require('./titleCollector');
 
-module.exports = async function (browser, query) {
+ module.exports = async function (browser, query) {
 	const page = await browser.newPage();
 
 	const yandexURL = 'https://yandex.by/search/?' + new URLSearchParams({ text: query, ncrnd: 9890 });
 	let result = {};
+
+	 /*
+
+ {
+     error: {
+         status: false,
+         text: ""
+     },
+     data: {
+         id: 0,
+         domain: "domain.com",
+         img: "",
+         links: [
+             {
+                 href: ""
+                 innerText: ""
+                 timestamp: ""
+             }
+         ]
+     }
+ }
+
+ */
 
 	await page.goto(yandexURL, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
 		.then(() => {
@@ -13,8 +36,8 @@ module.exports = async function (browser, query) {
 		.catch(error => {
 			const errorMessage = `ERROR >> Не удалось открыть yandex [${query}]\n${error}\n\n`;
 			console.error(errorMessage);
-			result.errorText += errorMessage;
-			result.isError = true;
+			result.error.text += errorMessage;
+			result.error.status = true;
 		});
 
 	await page.waitForSelector('#search-result .serp-item', { timeout: 5000 })
@@ -24,8 +47,8 @@ module.exports = async function (browser, query) {
 		.catch(error => {
 			const errorMessage = `ERROR >> Не удалось найти результаты выдачи\n${error}\n\n`;
 			console.error(errorMessage);
-			result.errorText += errorMessage;
-			result.isError = true;
+			result.error.text += errorMessage;
+			result.error.status = true;
 		});
 
 	await page.evaluate(() => {
@@ -61,11 +84,14 @@ module.exports = async function (browser, query) {
 		.catch(error => {
 			const errorMessage = `ERROR >> Не удалось собрать выдачу с yandex\n\n${error}\n\n`
 			console.error(errorMessage);
-			result.errorText += errorMessage;
+			result.error.text += errorMessage;
+			result.error.status = true;
 		});
 
 	await page.goto('about:blank');
 	await page.close();
 	console.log(`>> Вкладка yandex закрыта\n\n`);
+
+	console.log('result >> ', result );
 	return result;
 }
