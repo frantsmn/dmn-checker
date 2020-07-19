@@ -1,9 +1,9 @@
 import fetchData from "./fetchData.js";
 
 export default async function processTitles(items, progress, _vue) {
+	let result = [];
 	console.group('processTitles()');
 	progress.text = 'Получение тайтлов для результата выдачи...';
-
 
 	let itemsCopy = items.slice();
 	let groups = [];
@@ -29,9 +29,10 @@ export default async function processTitles(items, progress, _vue) {
 			break;
 		} else {
 			response.forEach(responseItem => {
-				let listItemIndex = items.findIndex(item => item.id === responseItem.id);
+				result.push(responseItem);
+				// let listItemIndex = items.findIndex(item => item.id === responseItem.id);
 				//Реактивное обновление элементов массива (объектов) в Vue
-				_vue.$set(items, listItemIndex, Object.assign({}, items[listItemIndex], responseItem));
+				// _vue.$set(items, listItemIndex, Object.assign({}, items[listItemIndex], responseItem));
 			});
 		}
 
@@ -54,4 +55,5 @@ export default async function processTitles(items, progress, _vue) {
 	progress.text = '';
 	console.log('Done!!!');
 	console.groupEnd();
+	return result;
 }

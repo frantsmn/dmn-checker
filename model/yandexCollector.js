@@ -1,33 +1,21 @@
 // const _title = require('./titleCollector');
 
- module.exports = async function (browser, query) {
+module.exports = async function (browser, query) {
 	const page = await browser.newPage();
 
 	const yandexURL = 'https://yandex.by/search/?' + new URLSearchParams({ text: query, ncrnd: 9890 });
-	let result = {};
+	let result = {
 
-	 /*
+		error: {
+			status: false,
+			text: ""
+		},
+		data: []
+		// [{
+		// 	index, text, url, domain, advertisement
+		// }, ...]
 
- {
-     error: {
-         status: false,
-         text: ""
-     },
-     data: {
-         id: 0,
-         domain: "domain.com",
-         img: "",
-         links: [
-             {
-                 href: ""
-                 innerText: ""
-                 timestamp: ""
-             }
-         ]
-     }
- }
-
- */
+	};
 
 	await page.goto(yandexURL, { waitUntil: 'networkidle', networkIdleInflight: 0, networkIdleTimeout: '1000' })
 		.then(() => {
@@ -54,31 +42,27 @@
 	await page.evaluate(() => {
 
 		let data = [];
-		document.querySelectorAll('.serp-item:not([data-fast-wzrd])').forEach(position => {
-			let el = position.querySelector('h2 > .link');
-			if (el) {
-				let text = el.innerText;
-				let url = el.href;
-				let domain = new URL(url).host;
-				let isRedirect = false;
-				if (domain === 'yabs.yandex.by') {
-					domain = position.querySelector('.organic__subtitle > div.path > a:first-child').innerText;
-					isRedirect = true;
+		document.querySelectorAll('.serp-item:not([data-fast-wzrd])')
+			.forEach((link, index) => {
+				const el = link.querySelector('h2 > .link');
+				if (el) {
+					let text = el.innerText;
+					let url = el.href;
+					let domain = new URL(url).host;
+					let advertisement = false;
+					if (domain === 'yabs.yandex.by') {
+						domain = link.querySelector('.organic__subtitle > div.path > a:first-child').innerText;
+						advertisement = true;
+					}
+					data.push({ index, text, url, domain, advertisement });
 				}
-				data.push({ text, url, domain, isRedirect });
-			}
-		});
+			});
 
 		return data;
 
 	}).then(async data => {
 
-		data.forEach((item, index) => {
-			item.id = index;
-		});
-
-		console.log(`>> Выдача с yandex:`, data);
-		result = data;
+		result.data = data;
 
 	})
 		.catch(error => {
@@ -90,8 +74,9 @@
 
 	await page.goto('about:blank');
 	await page.close();
+
+	console.log(`>> Результаты:`, result);
 	console.log(`>> Вкладка yandex закрыта\n\n`);
 
-	console.log('result >> ', result );
 	return result;
 }

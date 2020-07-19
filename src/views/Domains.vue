@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <div class="card border-secondary rounded-2">
-      
       <div class="row card-body">
         <!-- Форма -->
         <div class="col">
@@ -156,20 +155,7 @@
       </div>
 
       <!-- Прогрессбар -->
-      <div v-if="progress.visible" :data-text="progress.text" class="progress">
-        <div
-          role="progressbar"
-          class="progress-bar progress-bar-striped progress-bar-animated"
-          style="width: 100%; position: absolute; height: 5px; opacity: 0.4;"
-        ></div>
-
-        <div
-          role="progressbar"
-          class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-          :style="'width:'+progress.value+'%'"
-        ></div>
-      </div>
-
+      <Progressbar :visiblity="progress.visible" :value="progress.value" :text="progress.text"></Progressbar>
     </div>
 
     <!-- РЕЗУЛЬТАТЫ -->
@@ -195,18 +181,15 @@
 
 <script>
 import processDomains from "@/js/model/processDomains.js";
-import processQueryYandex from "@/js/model/processQueryYandex.js";
-import processTitles from "@/js/model/processTitles.js";
 
 import List from "Components/List.vue";
 import ListPill from "Components/ListPill.vue";
+import Progressbar from "Components/Progressbar.vue";
 
 export default {
-  components: { List, ListPill },
+  components: { List, ListPill, Progressbar },
   data() {
     return {
-      el: "#domains",
-
       textareaText: "", //Поле
       lists: [], //Сформированные списки результатов проверки
 
@@ -313,25 +296,3 @@ export default {
   }
 };
 </script>
-
-<style lang="scss">
-.progress {
-  height: 5px;
-  border-radius: 0;
-  position: absolute;
-  bottom: -1px;
-  left: -1px;
-  width: 100%;
-  overflow: visible !important;
-
-  &::after {
-    content: attr(data-text);
-    display: block;
-    color: #687a8c;
-    position: absolute;
-    top: -19px;
-    left: 3px;
-    font-size: 12px;
-  }
-}
-</style>

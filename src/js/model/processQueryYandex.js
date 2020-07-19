@@ -1,6 +1,7 @@
 import fetchData from "./fetchData.js";
 
-export default async function processQuery(items, query, progress) {
+export default async function processQuery(query, progress) {
+	let result = {};
 	console.group('processQueryYandex()')
 	progress.text = 'Получение поисковой выдачи Yandex...';
 
@@ -13,11 +14,12 @@ export default async function processQuery(items, query, progress) {
 			console.error(`Данные поисковой выдачи Yandex получить не удалось\nОшибка сервера!`);
 			alert(`Данные поисковой выдачи Yandex получить не удалось\nОшибка сервера!`);
 		} else {
-			response.forEach(item => items.push(item));
+			result = response;
 		}
 	}
 
 	progress.text = '';
 	console.log('Done!!!');
 	console.groupEnd();
+	return result;
 }
