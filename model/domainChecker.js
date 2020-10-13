@@ -1,7 +1,7 @@
 const grabFromWebArchive = require('./webArchive.js');
 // const grabFromLinkpad = require('./linkpad.js');
 
-async function checkDomain(browser, params) {
+module.exports = async function checkDomain(browser, params) {
 
     const result = {
 
@@ -38,24 +38,4 @@ async function checkDomain(browser, params) {
 
     console.log(`[domainChecker.js] >> Домен ${params.domain} проверен!\n\n`);
     return result;
-}
-
-module.exports = async function (browser, domains) {
-
-    let array = [],
-        response = [];
-
-    array = domains.length > 3 ? domains.slice(0, 3) : domains;
-
-    // Делаем "map" массива в промисы
-    const promises = array.map(
-        async domain => {
-            await checkDomain(browser, domain)
-                .then(info => response.push(info))
-                .catch(error => console.error('[domainChecker.js] >> ERROR >> Не удалось проверить домен!', error))
-        });
-
-    await Promise.all(promises);
-    console.log('[domainChecker.js] >> Все домены проверены!\n\n');
-    return response;
 }

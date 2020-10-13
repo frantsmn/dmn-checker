@@ -50,10 +50,8 @@ console.log(process.argv[2] === 'development' ? '\n-= DEVELOPMENT MODE =-\n' : '
             const data = await domainChecker(browser, (req.body));
             res.json(data);
         } catch (err) {
-            req.body.forEach(item => {
-                item.isError = true;
-                item.errorText = "ERROR >> 503 - Ошибка сервера";
-            });
+            req.body.isError = true;
+            req.body.errorText = "ERROR >> 503 - Ошибка сервера";
             res.status(503).json(req.body);
             console.error('503 ERROR >> ', err);
         }

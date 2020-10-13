@@ -1,20 +1,31 @@
 import fetchData from "./fetchData.js";
 
 export default async function processDomains(items, text = undefined, progress, _vue) {
-	console.group('processDomains()')
+	console.group('Проверка доменов...')
 
+	// Флаг на остановку цикла проверки при фатальной ошибке
+	let fatalError = false;
+
+	// Создать массив доменов
 	const domains = [];
-
 	domains.push(...text.split('\n').map((domain, id) => ({ domain, id })));
-	console.log('domains: ', domains);
+	console.log('[processDomains.js] >> Создан массив доменов: ', domains);
 
+	// Создать копию массива доменов
 	let domainsCopy = domains.slice();
 	let groups = [];
+	// Разделить её на группы по 3 домена в каждой
 	while (domainsCopy.length) {
 		groups.push(domainsCopy.splice(0, 3));
 	}
 
+	// Для каждой группы
 	for (let [key, group] of Object.entries(groups)) {
+
+		console.group('Проверка группы доменов...')
+		console.log('[processDomains.js] >> Формируются запросы для группы: ', group);
+
+		// Подсчет прогресса
 		progress.value = 100 / (groups.length - 1) * key;
 		progress.text = `Получение данных для доменов: `;
 		group.forEach(domain => {
@@ -23,24 +34,59 @@ export default async function processDomains(items, text = undefined, progress, 
 		progress.text = progress.text.substring(0, progress.text.length - 2);
 		progress.text += '...';
 
-		console.log('<< Request: ', group);
-		let response = await fetchData(group, 'domain');
-		console.log('>> Response: ', response);
-
-		if (!response) {
-			console.error(`Данные о доменах ${progress.text} получить не удалось\nОшибка сервера!`);
-			alert(`Данные о доменах ${progress.text} получить не удалось\nОшибка сервера!`);
-		} else {
-			response.forEach(responseItem => {
-				let listItemIndex = domains.findIndex(domain => domain.id === responseItem.data.id);
-				//Реактивное добавление элементов массива (объектов) в Vue
-				_vue.$set(items, listItemIndex, Object.assign({}, items[listItemIndex], responseItem));
+		// Каждый элемент в группе становится промисом
+		const promises = group.map(
+			async domain => {
+				await fetchData(domain, 'domain')
+					.then(response => {
+						if (response) {
+							// Дополняем объект домента информацией с сервера
+							Object.assign(domain, response);
+							console.log('[processDomains.js] >> Получен ответ для ', domain.domain, response);
+						} else {
+							console.error('[processDomains.js] >> Не удалось получить ответ для ', domain.domain, error);
+							domain.error = {
+								fatal: true,
+								status: true,
+								text: `Не удалось проверить домен! Сервер не отвечает! ${error}`
+							};
+						}
+					})
+					//???
+					.catch(error => {
+						console.error('[processDomains.js] >> Не удалось получить ответ для ', domain.domain, error);
+						domain.error = {
+							fatal: true,
+							status: true,
+							text: `Не удалось проверить домен! Сервер не отвечает! ${error}`
+						};
+					});
 			});
-		}
 
+		// Обработка группы доменов
+		await Promise.all(promises);
+
+		group.forEach(updatedDomain => {
+			if (updatedDomain.error.fatal) {
+				console.log('!!!!!!!!! FATAL ERROR !!!!!!!!!');
+				fatalError = true;
+				return;
+			}
+			const id = updatedDomain.id;
+
+			// Обновляем массив do vue
+			// По индексу "id" в массиве items устанавливаем обновленный домен
+			_vue.$set(items, id, Object.assign({}, items[updatedDomain.data.id], updatedDomain));
+		});
+
+		console.groupEnd();
+		if (fatalError) {
+			alert("Ошибка! Проверка остановлена. Сервер перестал отвечать. Для дальнейшей работы убери из списка уже проверенные домены и запусти снова.");
+			break;
+		}
 	}
 	progress.value = 0;
 	progress.text = '';
-	console.log('Done!!!');
+	console.log('[processDomains.js] >> Все домены проверены!');
 	console.groupEnd();
 }
