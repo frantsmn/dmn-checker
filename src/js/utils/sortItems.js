@@ -39,10 +39,10 @@ function sortByAge(items) {
         let _a = 0;
         let _b = 0;
 
-        if (a.hasOwnProperty('links') && a.links && a.links.length && a.links[0].timestamp)
-            _a = a.links[0].timestamp;
-        if (a.hasOwnProperty('links') && b.links && b.links.length && b.links[0].timestamp)
-            _b = b.links[0].timestamp;
+        if (a.data.hasOwnProperty('links') && a.data.links.length && a.data.links[0].timestamp)
+            _a = a.data.links[0].timestamp;
+        if (a.data.hasOwnProperty('links') && b.data.links.length && b.data.links[0].timestamp)
+            _b = b.data.links[0].timestamp;
 
         return _a - _b;
     });

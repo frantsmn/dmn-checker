@@ -71,7 +71,7 @@ module.exports = async function (browser, result) {
             const errorMessage = `ERROR >> Не удалось перейти на страницу web.archive.org [${result.data.domain}]\n${error}\n\n`;
             console.error(errorMessage);
             result.error.text += errorMessage;
-            result.error.status = true;
+            // result.error.status = true;
         });
 
     await page.waitForSelector('#wm-graph-anchor', { timeout: 4000 })

@@ -7,8 +7,8 @@
 <script>
 import Card from "Components/Card.vue";
 
-// import filterItems from "@/js/utils/filterItems.js";
-// import sortItems from "@/js/utils/sortItems.js";
+import filterItems from "@/js/utils/filterItems.js";
+import sortItems from "@/js/utils/sortItems.js";
 
 export default {
   components: { Card },
@@ -19,8 +19,8 @@ export default {
       if (!this.list.isActive) return this.list.items;
 
       let computedItems = [...this.list.items];
-      // computedItems = filterItems(computedItems, this.filter);
-      // sortItems(computedItems, this.sort);
+      computedItems = filterItems(computedItems, this.filter);
+      sortItems(computedItems, this.sort);
       return computedItems;
     }
   }

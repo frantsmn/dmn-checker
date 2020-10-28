@@ -85,8 +85,9 @@ export default async function processDomains(items, text = undefined, progress, 
 			break;
 		}
 	}
+
 	progress.value = 0;
 	progress.text = '';
-	console.log('[processDomains.js] >> Все домены проверены!');
+	console.log('[processDomains.js] >> Проверка завершена!');
 	console.groupEnd();
 }
