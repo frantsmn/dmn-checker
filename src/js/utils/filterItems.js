@@ -3,7 +3,7 @@ export default function filterItems(items, filter) {
 
     if (filter.hideErrors) {
         items = items.filter(item => !item.error.status);
-        console.log('Filtered from errors', items);
+        console.log('Filtered from errors');
     }
 
     if (filter.firstShot && filter.firstShotDate) {

@@ -54,7 +54,7 @@ export default {
 	methods: {
 		setNewName(list) {
       console.log(list);
-			list.name = prompt("Введите новое наименование вкладки", list.name);
+			list.name = prompt("Введите новое наименование вкладки", list.name).trim() || list.name;
 		},
 		deleteList(id) {
 			const listIndex = this.lists.findIndex((list) => list.id === id);
