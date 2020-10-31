@@ -169,6 +169,7 @@
 		<div class="mt-5" id="container">
 			<!-- Вкладки - Pills -->
 			<ul class="nav nav-pills">
+				<ListLoadPill @load="addLoadedList"></ListLoadPill>
 				<ListPill
 					v-for="list in lists"
 					:list="list"
@@ -199,11 +200,12 @@ import "moment/locale/ru";
 import processDomains from "@/js/model/processDomains.js";
 
 import List from "Components/List.vue";
+import ListLoadPill from "Components/ListLoadPill.vue";
 import ListPill from "Components/ListPill.vue";
 import Progressbar from "Components/Progressbar.vue";
 
 export default {
-	components: { List, ListPill, Progressbar },
+	components: { List, ListLoadPill, ListPill, Progressbar },
 	data() {
 		return {
 			textareaText: "", //Поле
@@ -276,6 +278,19 @@ export default {
 			this.lists.forEach(
 				(list) => (list.isActive = list.id === id ? true : false)
 			);
+		},
+
+		addLoadedList(loadedList) {
+			const NEW_LIST = JSON.parse(loadedList);
+			//Поиск загружаемого списка среди существующих
+			const EXISTING_LIST = this.lists.find((item) => item.id === NEW_LIST.id);
+			if (EXISTING_LIST) {
+				alert(
+					`Список с таким же id под названием «${EXISTING_LIST.name}» уже существует!`
+				);
+			} else {
+				this.lists.unshift(NEW_LIST);
+			}
 		},
 
 		async onSubmit() {

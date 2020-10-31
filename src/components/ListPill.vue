@@ -16,14 +16,15 @@
 				style="margin: 0 4px 1px 0"
 			></div>
 
-			<button v-if="!list.isBusy" class="btn btn-sm p-0 mr-1">
+			<button
+				v-if="!list.isBusy"
+				@click="saveListAsFile(list)"
+				class="btn btn-sm p-0 mr-1"
+			>
 				<i class="fa fa-download"></i>
 			</button>
 
-			<button
-				@click="setNewName(list)"
-				class="btn btn-sm p-0 mr-1"
-			>
+			<button @click="setNewName(list)" class="btn btn-sm p-0 mr-1">
 				<i class="fa fa-pencil"></i>
 			</button>
 
@@ -46,15 +47,24 @@
 export default {
 	props: ["list", "lists"],
 	template: "#list-pill-component",
-	// computed: {
-	//   computedName() {
-	//     return `Результаты`;
-	//   }
-	// },
 	methods: {
 		setNewName(list) {
-      console.log(list);
-			list.name = prompt("Введите новое наименование вкладки", list.name).trim() || list.name;
+			let newName = prompt("Переименовать", list.name);
+			if (newName && newName.trim()) {
+				list.name = newName.trim();
+			}
+		},
+		saveListAsFile(list) {
+			const a = document.createElement("a");
+			a.href = URL.createObjectURL(
+				new Blob([JSON.stringify(list)], {
+					type: "text/plain",
+				})
+			);
+			a.setAttribute("download", `${list.name}.txt`);
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
 		},
 		deleteList(id) {
 			const listIndex = this.lists.findIndex((list) => list.id === id);
