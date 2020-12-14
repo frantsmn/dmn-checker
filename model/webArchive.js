@@ -3,7 +3,17 @@ module.exports = async function (browser, result) {
     async function grabInfo(page, container, result) {
 
         await page.addStyleTag({
-            content: '.sparkline-container{overflow: visible !important; max-width: unset !important; width: max-content;}'
+            content: `
+            .sparkline-container {
+                overflow: visible !important;
+                max-width: unset !important;
+                width: max-content;
+            }
+
+            #donate_banner{
+                display: none !important;
+            }
+            `
         })
             .then(() => {
                 console.log(`>> Добавлены стили для контейнера [${result.data.domain}]`);
